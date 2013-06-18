@@ -1,5 +1,4 @@
 import os
-import xml.etree.ElementTree as ET
 
 from cli_modules import listCLIExecutables, getXMLDescription, CLIModule
 from mdl import MDLGroup, MDLTag, MDLNewline
