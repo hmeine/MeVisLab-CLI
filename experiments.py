@@ -1,7 +1,7 @@
 import os, logging
 logging.basicConfig(format='%(asctime)s %(message)s')
 
-from cli_modules import listCLIExecutables, getXMLDescription, CLIModule
+from cli_modules import isCLIExecutable, listCLIExecutables, getXMLDescription, CLIModule
 from mdl import MDLGroup, MDLTag, MDLNewline
 
 def mdlDescription(cliModule):
@@ -42,8 +42,10 @@ def mdlDescription(cliModule):
         interface.append(parametersSection)
 
     return result
-        
+
 cliModules = listCLIExecutables('/Applications/Slicer.app/Contents/lib/Slicer-4.2/cli-modules')
+
+args = sys.argv[1:] or cliModules
 
 # for e in cliModules:
 #     import subprocess
@@ -58,9 +60,17 @@ cliModules = listCLIExecutables('/Applications/Slicer.app/Contents/lib/Slicer-4.
 #         result.append(getXMLDescription(executable))
 #     return result
 
-executablePath = cliModules[10]
-elementTree = getXMLDescription(executablePath)
-m = CLIModule(os.path.basename(executablePath))
-m.parse(elementTree.getroot())
+import xml.etree.ElementTree as ET
+
+for executablePath in args:
+    #executablePath = cliModules[2]
+    print executablePath
+    if isCLIExecutable(executablePath):
+        elementTree = getXMLDescription(executablePath)
+    else:
+        elementTree = ET.parse(file(executablePath))
+    #ET.dump(elementTree)
+    m = CLIModule(os.path.basename(executablePath))
+    m.parse(elementTree.getroot())
 
 print mdlDescription(m).mdl()
