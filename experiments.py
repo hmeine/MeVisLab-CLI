@@ -1,4 +1,5 @@
-import os
+import os, logging
+logging.basicConfig(format='%(asctime)s %(message)s')
 
 from cli_modules import listCLIExecutables, getXMLDescription, CLIModule
 from mdl import MDLGroup, MDLTag, MDLNewline
