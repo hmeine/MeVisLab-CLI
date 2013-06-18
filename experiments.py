@@ -4,26 +4,24 @@ logging.basicConfig(format='%(asctime)s %(message)s')
 from cli_modules import listCLIExecutables, getXMLDescription, CLIModule
 from mdl import MDLGroup, MDLTag, MDLNewline
 
-def mdlDescription(executablePath):
-    moduleName = os.path.basename(executablePath)
-    elementTree = getXMLDescription(executablePath)
-    executable, = elementTree.findall('.')
-    assert executable.tag == 'executable'
+def mdlDescription(cliModule):
+    moduleName = None # "CLI_" + os.path.basename(executablePath)
 
     result = MDLGroup("MacroModule", moduleName)
-    version = None
-    for el in executable:
-        if el.tag == 'title':
-            title = el.text
-        elif el.tag == 'description':
-            description = el.text
-        elif el.tag == 'version':
-            version = el.text
-        elif el.tag == 'contributor':
-            result.append(MDLTag(author = el.text))
-    result.insert(0, MDLTag(comment = "%s%s - %s" % (title, " v%s" % version if version else "",
-                                                     description)))
-    
+
+    comment = cliModule.title
+    if cliModule.version:
+        comment += " v%s" % cliModule.version
+    if cliModule.description:
+        comment += " - " + cliModule.description
+    result.append(MDLTag(comment = comment))
+
+    if cliModule.contributor:
+        result.append(MDLTag(author = cliModule.contributor))
+
+    if cliModule.category:
+        result.append(MDLTag(keywords = ["CLI"] + cliModule.category.split('.')))
+
     interface = MDLGroup("Interface")
     result.append(MDLNewline())
     result.append(interface)
@@ -32,11 +30,9 @@ def mdlDescription(executablePath):
     outputsSection = MDLGroup("Outputs")
     parametersSection = MDLGroup("Parameters")
 
-    for parameters in executable.findall('parameters'):
+    for parameters in cliModule:
         for parameter in parameters:
-            if parameter.tag == "image":
-                if parameter.find('channel').text == 'input':
-                    pass # FIXME
+            print parameter.name
 
     if inputsSection:
         interface.append(inputsSection)
@@ -67,5 +63,4 @@ executable = elementTree.getroot()
 m = CLIModule()
 m.parse(executable)
 
-
-print mdlDescription(cliModules[10]).mdl()
+print mdlDescription(m).mdl()
