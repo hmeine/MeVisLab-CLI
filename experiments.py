@@ -5,7 +5,7 @@ from cli_modules import listCLIExecutables, getXMLDescription, CLIModule
 from mdl import MDLGroup, MDLTag, MDLNewline
 
 def mdlDescription(cliModule):
-    moduleName = None # "CLI_" + os.path.basename(executablePath)
+    moduleName = "CLI_" + cliModule.name
 
     result = MDLGroup("MacroModule", moduleName)
 
@@ -58,9 +58,9 @@ cliModules = listCLIExecutables('/Applications/Slicer.app/Contents/lib/Slicer-4.
 #         result.append(getXMLDescription(executable))
 #     return result
 
-elementTree = getXMLDescription(cliModules[10])
-executable = elementTree.getroot()
-m = CLIModule()
-m.parse(executable)
+executablePath = cliModules[10]
+elementTree = getXMLDescription(executablePath)
+m = CLIModule(os.path.basename(executablePath))
+m.parse(elementTree.getroot())
 
 print mdlDescription(m).mdl()
