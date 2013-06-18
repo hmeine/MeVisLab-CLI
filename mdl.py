@@ -1,7 +1,11 @@
 import re
 
 def mdlValue(value):
+    if isinstance(value, bool):
+        return "yes" if value else "no"
     value = str(value)
+    if value == '':
+        return '""'
     if "\n" in value:
         return '"*%s*"' % value.replace('\\', '\\\\').replace('"*', '"\\*')
     if re.search('[ \t]', value):
@@ -10,8 +14,13 @@ def mdlValue(value):
 
 
 class MDLTag(object):
-    def __init__(self, **kwargs):
-        (name, value), = kwargs.items()
+    def __init__(self, name = None, value = '', **kwargs):
+        if name is None:
+            (name, value), = kwargs.items()
+            if name == 'type_':
+                name = 'type'
+        elif kwargs:
+            raise ValueError, "MDLTag: use either positional args or kwargs, not both!"
         self.tagName = name
         self.tagValue = value
 
