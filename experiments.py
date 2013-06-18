@@ -1,30 +1,47 @@
-import os, logging
-logging.basicConfig(format='%(asctime)s %(message)s')
+import os, logging, sys, glob, re
+#logging.basicConfig(format='  %(asctime)s %(message)s')
+#logging.basicConfig(filename = 'warnings.txt', level = 0)
+logging.basicConfig(stream = sys.stdout, level = 0) # easy grep'ping
 
 from cli_modules import isCLIExecutable, listCLIExecutables, getXMLDescription, CLIModule
-from mdl import MDLGroup, MDLTag, MDLNewline
+from mdl import MDLGroup, MDLTag, MDLNewline, MDLComment, MDLFile
+
+SIMPLE_TYPE_MAPPING = {
+    'boolean'   : 'Bool',
+    'integer'   : 'Integer',
+    'float'     : 'Float',
+    'double'    : 'Double',
+    'string'    : 'String',
+    'directory' : 'String',
+    }
 
 def mdlDescription(cliModule):
     moduleName = "CLI_" + cliModule.name
 
-    result = MDLGroup("MacroModule", moduleName)
+    defFile = MDLFile()
+    definition = MDLGroup("MacroModule", moduleName)
+    defFile.append(definition)
+    scriptFile = MDLFile()
+    interface = MDLGroup("Interface")
+    scriptFile.append(interface)
+    mlabFile = MDLFile()
+    mlabFile.append(MDLComment('MDL v1 utf8'))
+    #mlabFile.append(MDLGroup('network'))
 
     comment = cliModule.title
     if cliModule.version:
         comment += " v%s" % cliModule.version
     if cliModule.description:
         comment += " - " + cliModule.description
-    result.append(MDLTag(comment = comment))
+    definition.append(MDLTag(comment = comment))
 
     if cliModule.contributor:
-        result.append(MDLTag(author = cliModule.contributor))
+        definition.append(MDLTag(author = re.sub(r' *\([^)]*\)', '', cliModule.contributor)))
 
     if cliModule.category:
-        result.append(MDLTag(keywords = "CLI " + cliModule.category.replace('.', ' ')))
+        definition.append(MDLTag(keywords = "CLI " + cliModule.category.replace('.', ' ')))
 
-    interface = MDLGroup("Interface")
-    result.append(MDLNewline())
-    result.append(interface)
+    definition.append(MDLTag(externalDefinition = "$(LOCAL)/%s.script" % cliModule.name))
 
     inputsSection = MDLGroup("Inputs")
     outputsSection = MDLGroup("Outputs")
@@ -32,7 +49,43 @@ def mdlDescription(cliModule):
 
     for parameters in cliModule:
         for parameter in parameters:
-            print parameter.name
+            field = MDLGroup("Field", parameter.identifier())
+
+            if parameter.description:
+                field.append(MDLTag(comment = parameter.description))
+
+            if parameter.typ == "image":
+                if parameter.channel == "input":
+                    inputsSection.append(field)
+                    field.append(MDLTag(internalName = "%s.input0" % parameter.identifier()))
+                elif parameter.channel == "output":
+                    outputsSection.append(field)
+                    field.append(MDLTag(internalName = "%s.output0" % parameter.identifier()))
+                bypass = MDLGroup("module", "Bypass")
+                bpFields = MDLGroup("fields")
+                bpFields.append(MDLTag(instanceName = parameter.identifier()))
+                bypass.append(bpFields)
+                mlabFile.append(bypass)
+            elif parameter.typ in SIMPLE_TYPE_MAPPING:
+                field.append(MDLTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ]))
+                parametersSection.append(field)
+            elif parameter.typ.endswith("-enumeration"):
+                field.append(MDLTag(type_ = 'Enum'))
+                items = MDLGroup("items")
+                for item in parameter.elements:
+                    #items.append(MDLGroup('item', item))
+                    items.append(MDLTag('item', item))
+                field.append(items)
+                parametersSection.append(field)
+
+            if parameter.constraints:
+                if parameter.constraints.minimum is not None:
+                    field.append(MDLTag(min = parameter.constraints.minimum))
+                if parameter.constraints.maximum is not None:
+                    field.append(MDLTag(max = parameter.constraints.maximum))
+
+            if parameter.hidden:
+                field.append(MDLTag(hidden = True))
 
     if inputsSection:
         interface.append(inputsSection)
@@ -41,11 +94,15 @@ def mdlDescription(cliModule):
     if parametersSection:
         interface.append(parametersSection)
 
-    return result
+    #mlabFile.append(MDLTag('connections'))
+    #mlabFile.append(MDLTag('networkModel'))
+
+    return defFile, scriptFile, mlabFile
 
 cliModules = listCLIExecutables('/Applications/Slicer.app/Contents/lib/Slicer-4.2/cli-modules')
+xmlFiles = glob.glob("xml/*")
 
-args = sys.argv[1:] or cliModules
+args = sys.argv[1:] or xmlFiles # cliModules
 
 # for e in cliModules:
 #     import subprocess
@@ -64,7 +121,7 @@ import xml.etree.ElementTree as ET
 
 for executablePath in args:
     #executablePath = cliModules[2]
-    print executablePath
+    logging.info(executablePath)
     if isCLIExecutable(executablePath):
         elementTree = getXMLDescription(executablePath)
     else:
@@ -72,5 +129,10 @@ for executablePath in args:
     #ET.dump(elementTree)
     m = CLIModule(os.path.basename(executablePath))
     m.parse(elementTree.getroot())
-
-print mdlDescription(m).mdl()
+    defFile, scriptFile, mlabFile = mdlDescription(m)
+    with file("mdl/%s.def" % m.name, "w") as f:
+        f.write(defFile.mdl())
+    with file("mdl/%s.script" % m.name, "w") as f:
+        f.write(scriptFile.mdl())
+    with file("mdl/%s.mlab" % m.name, "w") as f:
+        f.write(mlabFile.mdl())
