@@ -51,6 +51,21 @@ class MDLNewline(object):
     def mdl(self, indentation = ""):
         return ""
 
+
+class MDLComment(object):
+    def __init__(self, comment):
+        self.comment = comment
+
+    def mdl(self, indentation = ""):
+        return "\n".join("%s// %s" % (indentation, line)
+                         for line in self.comment.split("\n"))
+
+
+class MDLFile(list):
+    def mdl(self):
+        return "\n".join(element.mdl() for element in self) + "\n"
+
+
 # --------------------------------------------------------------------
 
 def test_simple_quoting():
