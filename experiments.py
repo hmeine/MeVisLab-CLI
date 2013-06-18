@@ -20,7 +20,7 @@ def mdlDescription(cliModule):
         result.append(MDLTag(author = cliModule.contributor))
 
     if cliModule.category:
-        result.append(MDLTag(keywords = ["CLI"] + cliModule.category.split('.')))
+        result.append(MDLTag(keywords = "CLI " + cliModule.category.replace('.', ' ')))
 
     interface = MDLGroup("Interface")
     result.append(MDLNewline())
