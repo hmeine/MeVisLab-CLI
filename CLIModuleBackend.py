@@ -62,11 +62,14 @@ def update():
                 ctx.module(p.identifier()).field('save').touch()
 
         print command
-        print subprocess.call(command)
-
-        for p in cliModule.parameters():
-            if p.typ == 'image' and p.channel == 'output':
-                ctx.module(p.identifier()).field('open').touch()
+        ec = subprocess.call(command)
+        if ec == 0:
+            for p in cliModule.parameters():
+                if p.typ == 'image' and p.channel == 'output':
+                    ctx.module(p.identifier()).field('open').touch()
+        else:
+            sys.stderr.write("%r returned exitcode %d!\n" % (cliModule.name, ec))
+            clear()
 
 def clear():
     """Close all itkImageFileReaders such as to make the output image states invalid"""
