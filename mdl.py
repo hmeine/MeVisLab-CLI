@@ -3,6 +3,8 @@ import re
 def mdlValue(value):
     if isinstance(value, bool):
         return "yes" if value else "no"
+    elif isinstance(value, list):
+        value = " ".join(map(mdlValue, value))
     value = str(value)
     if value == '':
         return '""'
