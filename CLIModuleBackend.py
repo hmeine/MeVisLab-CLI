@@ -1,3 +1,5 @@
+from cli_modules import CLIModule
+
 def updateIfAutoApply():
     if ctx.field("autoApply").value:
         update()
@@ -19,3 +21,6 @@ def clear():
     for o in ctx.outputs():
         ctx.module(o).field("close").touch()
 
+def load(path):
+    global cliModule
+    cliModule = CLIModule(path)

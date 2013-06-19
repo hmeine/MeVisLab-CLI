@@ -57,6 +57,10 @@ def mdlDescription(cliModule):
 
     commands.append(MDLTag(source = '$(LOCAL)/../CLIModuleBackend.py'))
     commands.append(MDLNewline)
+
+    commands.append(MDLTag(initCommand = 'py: load(%r)' % os.path.abspath(cliModule.path)))
+    commands.append(MDLNewline)
+
     listener = MDLGroup('FieldListener', 'update')
     listener.append(MDLTag(command = 'update'))
     commands.append(listener)
