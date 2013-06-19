@@ -3,7 +3,7 @@ import os, logging, sys, glob, re
 #logging.basicConfig(filename = 'warnings.txt', level = 0)
 logging.basicConfig(stream = sys.stdout, level = 0) # easy grep'ping
 
-from cli_modules import isCLIExecutable, listCLIExecutables, getXMLDescription, CLIModule
+from cli_modules import listCLIExecutables, CLIModule
 from mdl import MDLGroup, MDLTag, MDLNewline, MDLComment, MDLFile
 
 SIMPLE_TYPE_MAPPING = {
@@ -175,8 +175,6 @@ args = sys.argv[1:] or xmlFiles # cliModules
 #     for executable in listCLIExecutables(baseDir):
 #         result.append(getXMLDescription(executable))
 #     return result
-
-import xml.etree.ElementTree as ET
 
 defFile = MDLFile()
 
