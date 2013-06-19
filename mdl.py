@@ -48,7 +48,8 @@ class MDLGroup(list):
 
 
 class MDLNewline(object):
-    def mdl(self, indentation = ""):
+    @staticmethod
+    def mdl(indentation = ""):
         return ""
 
 

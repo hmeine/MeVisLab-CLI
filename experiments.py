@@ -130,6 +130,8 @@ args = sys.argv[1:] or xmlFiles # cliModules
 
 import xml.etree.ElementTree as ET
 
+defFile = MDLFile()
+
 for executablePath in args:
     #executablePath = cliModules[2]
     logging.info(executablePath)
@@ -140,10 +142,15 @@ for executablePath in args:
     #ET.dump(elementTree)
     m = CLIModule(os.path.basename(executablePath))
     m.parse(elementTree.getroot())
-    defFile, scriptFile, mlabFile = mdlDescription(m)
-    with file("mdl/%s.def" % m.name, "w") as f:
-        f.write(defFile.mdl())
+
+    mdefFile, scriptFile, mlabFile = mdlDescription(m)
+    if defFile:
+        defFile.append(MDLNewline)
+    defFile.extend(mdefFile)
     with file("mdl/%s.script" % m.name, "w") as f:
         f.write(scriptFile.mdl())
     with file("mdl/%s.mlab" % m.name, "w") as f:
         f.write(mlabFile.mdl())
+
+with file("mdl/CLIModules.def", "w") as f:
+    f.write(defFile.mdl())
