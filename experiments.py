@@ -47,6 +47,8 @@ def mdlDescription(cliModule):
     outputsSection = MDLGroup("Outputs")
     parametersSection = MDLGroup("Parameters")
 
+    xInput = xOutput = 0
+
     for parameters in cliModule:
         for parameter in parameters:
             field = MDLGroup("Field", parameter.identifier())
@@ -55,17 +57,26 @@ def mdlDescription(cliModule):
                 field.append(MDLTag(comment = parameter.description))
 
             if parameter.typ == "image":
+                # FIXME: voxel shift? compression?
                 if parameter.channel == "input":
                     inputsSection.append(field)
                     field.append(MDLTag(internalName = "%s.input0" % parameter.identifier()))
+                    module = MDLGroup("module", "itkImageFileWriter")
+                    x, y = xInput, 160
+                    xInput += 200
                 elif parameter.channel == "output":
                     outputsSection.append(field)
                     field.append(MDLTag(internalName = "%s.output0" % parameter.identifier()))
-                bypass = MDLGroup("module", "Bypass")
+                    module = MDLGroup("module", "itkImageFileReader")
+                    x, y = xOutput, 0
+                    xOutput += 200
+                internal = MDLGroup("internal")
+                internal.append(MDLTag(frame = "%d %d 120 64" % (x, y)))
+                module.append(internal)
                 bpFields = MDLGroup("fields")
                 bpFields.append(MDLTag(instanceName = parameter.identifier()))
-                bypass.append(bpFields)
-                mlabFile.append(bypass)
+                module.append(bpFields)
+                mlabFile.append(module)
             elif parameter.typ in SIMPLE_TYPE_MAPPING:
                 field.append(MDLTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ]))
                 parametersSection.append(field)
