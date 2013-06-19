@@ -1,6 +1,9 @@
 import re
 
 def mdlValue(value):
+    """Convert python value into MDL string representation.  Lists are
+    converted into space-separated vector strings, assuming numeric
+    elements."""
     if isinstance(value, bool):
         return "yes" if value else "no"
     elif isinstance(value, list):
