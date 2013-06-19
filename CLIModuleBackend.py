@@ -36,7 +36,7 @@ class ArgumentConverter(object):
             filename = self.mkstemp('.nrrd') # TODO: look at fileExtensions
             ioModule.field('unresolvedFileName').value = filename
             return filename
-        elif parameter.typ.endswith('-vector') and parameter.typ != 'string-vector':
+        elif parameter.isNumericVector():
             return ",".join(field.value.split())
         else:
             return str(field.value)
