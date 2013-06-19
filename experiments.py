@@ -20,14 +20,13 @@ def mdlDescription(cliModule):
     moduleName = "CLI_" + cliModule.name
 
     defFile = MDLFile()
-    definition = MDLGroup("MacroModule", moduleName)
-    defFile.append(definition)
     scriptFile = MDLFile()
-    interface = MDLGroup("Interface")
-    scriptFile.append(interface)
     mlabFile = MDLFile()
     mlabFile.append(MDLComment('MDL v1 utf8'))
-    #mlabFile.append(MDLGroup('network'))
+
+    # MacroModule definition
+    definition = MDLGroup("MacroModule", moduleName)
+    defFile.append(definition)
 
     comment = cliModule.title
     if cliModule.version:
@@ -44,12 +43,34 @@ def mdlDescription(cliModule):
 
     definition.append(MDLTag(externalDefinition = "$(LOCAL)/%s.script" % cliModule.name))
 
+    # Interface section
+    interface = MDLGroup("Interface")
+    scriptFile.append(interface)
+
     inputsSection = MDLGroup("Inputs")
     outputsSection = MDLGroup("Outputs")
     parametersSection = MDLGroup("Parameters")
 
-    xInput = xOutput = 0
+    # Commands section
+    commands = MDLGroup("Commands")
+    scriptFile.append(commands)
 
+    commands.append(MDLTag(source = '$(LOCAL)/../CLIModuleBackend.py'))
+    commands.append(MDLNewline)
+    listener = MDLGroup('FieldListener', 'update')
+    listener.append(MDLTag(command = 'update'))
+    commands.append(listener)
+
+    autoApplyListener = MDLGroup('FieldListener', 'autoApply')
+    autoApplyListener.append(MDLTag(command = 'updateIfAutoApply'))
+    commands.append(autoApplyListener)
+
+    autoUpdateListener = MDLGroup('FieldListener', 'autoUpdate')
+    autoUpdateListener.append(MDLTag(command = 'updateIfAutoUpdate'))
+    commands.append(autoUpdateListener)
+
+    # transform parameters
+    xInput = xOutput = 0
     for parameters in cliModule:
         for parameter in parameters:
             field = MDLGroup("Field", parameter.identifier())
@@ -65,6 +86,7 @@ def mdlDescription(cliModule):
                     module = MDLGroup("module", "itkImageFileWriter")
                     x, y = xInput, 160
                     xInput += 200
+                    autoUpdateListener.append(MDLTag(listenField = parameter.identifier()))
                 elif parameter.channel == "output":
                     outputsSection.append(field)
                     field.append(MDLTag(internalName = "%s.output0" % parameter.identifier()))
@@ -83,11 +105,13 @@ def mdlDescription(cliModule):
                 if parameter.default is not None:
                     field.append(MDLTag('value', parameter.default))
                 parametersSection.append(field)
+                autoApplyListener.append(MDLTag(listenField = parameter.identifier()))
             elif parameter.typ.endswith("-vector"):
                 field.append(MDLTag(type_ = 'String'))
                 if parameter.default is not None:
                     field.append(MDLTag('value', parameter.default))
                 parametersSection.append(field)
+                autoApplyListener.append(MDLTag(listenField = parameter.identifier()))
             elif parameter.typ.endswith("-enumeration"):
                 field.append(MDLTag(type_ = 'Enum'))
                 items = MDLGroup("items")
@@ -96,6 +120,7 @@ def mdlDescription(cliModule):
                     items.append(MDLTag('item', item))
                 field.append(items)
                 parametersSection.append(field)
+                autoApplyListener.append(MDLTag(listenField = parameter.identifier()))
 
             if parameter.constraints:
                 if parameter.constraints.minimum is not None:
@@ -106,15 +131,24 @@ def mdlDescription(cliModule):
             if parameter.hidden:
                 field.append(MDLTag(hidden = True))
 
+    field = MDLGroup('Field', 'autoUpdate')
+    field.append(MDLTag(type_ = 'Bool'))
+    parametersSection.append(field)
+
+    field = MDLGroup('Field', 'autoApply')
+    field.append(MDLTag(type_ = 'Bool'))
+    parametersSection.append(field)
+
+    field = MDLGroup('Field', 'update')
+    field.append(MDLTag(type_ = 'Trigger'))
+    parametersSection.append(field)
+
     if inputsSection:
         interface.append(inputsSection)
     if outputsSection:
         interface.append(outputsSection)
     if parametersSection:
         interface.append(parametersSection)
-
-    #mlabFile.append(MDLTag('connections'))
-    #mlabFile.append(MDLTag('networkModel'))
 
     return defFile, scriptFile, mlabFile
 
