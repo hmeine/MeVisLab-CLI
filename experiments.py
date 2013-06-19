@@ -177,13 +177,8 @@ defFile = MDLFile()
 for executablePath in args:
     #executablePath = cliModules[2]
     logging.info(executablePath)
-    if isCLIExecutable(executablePath):
-        elementTree = getXMLDescription(executablePath)
-    else:
-        elementTree = ET.parse(file(executablePath))
     #ET.dump(elementTree)
-    m = CLIModule(os.path.basename(executablePath))
-    m.parse(elementTree.getroot())
+    m = CLIModule(executablePath)
 
     mdefFile, scriptFile, mlabFile = mdlDescription(m)
     if defFile:
