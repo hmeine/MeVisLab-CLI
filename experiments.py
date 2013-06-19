@@ -127,6 +127,11 @@ def mdlDescription(cliModule):
                 field.append(items)
                 parametersSection.append(field)
                 autoApplyListener.append(MDLTag(listenField = parameter.identifier()))
+            else:
+                logging.warning("Parameter type %r not yet supported" % parameter.typ)
+                parametersSection.append(
+                    MDLComment("Parameter %r with type %r not supported yet"
+                               % (parameter.identifier(), parameter.typ)))
 
             if parameter.constraints:
                 if parameter.constraints.minimum is not None:
@@ -183,6 +188,7 @@ for executablePath in args:
     logging.info(executablePath)
     #ET.dump(elementTree)
     m = CLIModule(executablePath)
+    m.argumentsAndOptions() # performs additional sanity checks
 
     mdefFile, scriptFile, mlabFile = mdlDescription(m)
     if defFile:
