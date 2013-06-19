@@ -79,6 +79,13 @@ def mdlDescription(cliModule):
                 mlabFile.append(module)
             elif parameter.typ in SIMPLE_TYPE_MAPPING:
                 field.append(MDLTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ]))
+                if parameter.default is not None:
+                    field.append(MDLTag('value', parameter.default))
+                parametersSection.append(field)
+            elif parameter.typ.endswith("-vector"):
+                field.append(MDLTag(type_ = 'String'))
+                if parameter.default is not None:
+                    field.append(MDLTag('value', parameter.default))
                 parametersSection.append(field)
             elif parameter.typ.endswith("-enumeration"):
                 field.append(MDLTag(type_ = 'Enum'))
