@@ -13,6 +13,7 @@ SIMPLE_TYPE_MAPPING = {
     'double'    : 'Double',
     'string'    : 'String',
     'directory' : 'String',
+    'file'      : 'String',
     }
 
 def mdlDescription(cliModule):
