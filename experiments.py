@@ -192,6 +192,35 @@ def mdlDescription(cliModule):
 
     return defFile, scriptFile, mlabFile, htmlFile
 
+def cliToMacroModule(executablePath, targetDirectory, defFile = True):
+    """Write .script/.mlab files for the CLI module `executablePath`
+    to `targetDirectory`.  If `defFile` is set to an MLDFile instance,
+    the .def file contents are appended to that object, otherwise a
+    .def file for that single module gets written."""
+    logging.info(executablePath)
+    #ET.dump(elementTree)
+    m = CLIModule(executablePath)
+    m.argumentsAndOptions() # performs additional sanity checks
+
+    mdefFile, scriptFile, mlabFile, htmlFile = mdlDescription(m)
+    if defFile is True:
+        with file(os.path.join(targetDirectory, "%s.def" % m.name), "w") as f:
+            f.write(mdefFile.mdl())
+    else:
+        if defFile:
+            defFile.append(MDLNewline)
+        defFile.extend(mdefFile)
+
+    with file(os.path.join(targetDirectory, "%s.script" % m.name), "w") as f:
+        f.write(scriptFile.mdl())
+    with file(os.path.join(targetDirectory, "%s.mlab" % m.name), "w") as f:
+        f.write(mlabFile.mdl())
+    if htmlFile is not None:
+        with file(os.path.join(targetDirectory, "html", "%s.html" % m.name), "w") as f:
+            f.write(htmlFile)
+
+    return mdefFile
+
 cliModules = listCLIExecutables('/Applications/Slicer.app/Contents/lib/Slicer-4.2/cli-modules')
 xmlFiles = glob.glob("xml/*")
 
@@ -213,23 +242,7 @@ args = sys.argv[1:] or xmlFiles # cliModules
 defFile = MDLFile()
 
 for executablePath in args:
-    #executablePath = cliModules[2]
-    logging.info(executablePath)
-    #ET.dump(elementTree)
-    m = CLIModule(executablePath)
-    m.argumentsAndOptions() # performs additional sanity checks
-
-    mdefFile, scriptFile, mlabFile, htmlFile = mdlDescription(m)
-    if defFile:
-        defFile.append(MDLNewline)
-    defFile.extend(mdefFile)
-    with file("mdl/%s.script" % m.name, "w") as f:
-        f.write(scriptFile.mdl())
-    with file("mdl/%s.mlab" % m.name, "w") as f:
-        f.write(mlabFile.mdl())
-    if htmlFile is not None:
-        with file("mdl/html/%s.html" % m.name, "w") as f:
-            f.write(htmlFile)
+    cliToMacroModule(executablePath, "mdl", defFile)
 
 with file("mdl/CLIModules.def", "w") as f:
     f.write(defFile.mdl())
