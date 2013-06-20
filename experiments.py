@@ -26,23 +26,22 @@ def mdlDescription(cliModule):
     htmlFile = None
 
     # MacroModule definition
-    definition = MDLGroup("MacroModule", moduleName)
-    defFile.append(definition)
+    definition = defFile.addGroup("MacroModule", moduleName)
 
     comment = cliModule.title
     if cliModule.version:
         comment += " v%s" % cliModule.version
     if cliModule.description:
         comment += " - " + cliModule.description
-    definition.append(MDLTag(comment = comment))
+    definition.addTag(comment = comment)
 
     if cliModule.contributor:
-        definition.append(MDLTag(author = re.sub(r' *\([^)]*\)', '', cliModule.contributor)))
+        definition.addTag(author = re.sub(r' *\([^)]*\)', '', cliModule.contributor))
 
     if cliModule.category:
-        definition.append(MDLTag(keywords = "CLI " + cliModule.category.replace('.', ' ')))
+        definition.addTag(keywords = "CLI " + cliModule.category.replace('.', ' '))
 
-    definition.append(MDLTag(externalDefinition = "$(LOCAL)/%s.script" % cliModule.name))
+    definition.addTag(externalDefinition = "$(LOCAL)/%s.script" % cliModule.name)
 
     if cliModule.documentation_url:
         if not cliModule.documentation_url.startswith('http'):
@@ -59,36 +58,34 @@ def mdlDescription(cliModule):
 </body>
 </html>""" % dict(url = cliModule.documentation_url,
                   name = cliModule.name)
-            definition.append(MDLTag(documentation = "$(LOCAL)/html/%s.html" % cliModule.name))
+            definition.addTag(documentation = "$(LOCAL)/html/%s.html" % cliModule.name)
 
     # Interface section
-    interface = MDLGroup("Interface")
-    scriptFile.append(interface)
+    interface = scriptFile.addGroup("Interface")
 
     inputsSection = MDLGroup("Inputs")
     outputsSection = MDLGroup("Outputs")
     parametersSection = MDLGroup("Parameters")
 
     # Commands section
-    commands = MDLGroup("Commands")
-    scriptFile.append(commands)
+    commands = scriptFile.addGroup("Commands")
 
-    commands.append(MDLTag(source = '$(LOCAL)/../CLIModuleBackend.py'))
+    commands.addTag(source = '$(LOCAL)/../CLIModuleBackend.py')
     commands.append(MDLNewline)
 
-    commands.append(MDLTag(initCommand = 'py: load(%r)' % os.path.abspath(cliModule.path)))
+    commands.addTag(initCommand = 'py: load(%r)' % os.path.abspath(cliModule.path))
     commands.append(MDLNewline)
 
     listener = MDLGroup('FieldListener', 'update')
-    listener.append(MDLTag(command = 'update'))
+    listener.addTag(command = 'update')
     commands.append(listener)
 
     autoApplyListener = MDLGroup('FieldListener', 'autoApply')
-    autoApplyListener.append(MDLTag(command = 'updateIfAutoApply'))
+    autoApplyListener.addTag(command = 'updateIfAutoApply')
     commands.append(autoApplyListener)
 
     autoUpdateListener = MDLGroup('FieldListener', 'autoUpdate')
-    autoUpdateListener.append(MDLTag(command = 'updateIfAutoUpdate'))
+    autoUpdateListener.addTag(command = 'updateIfAutoUpdate')
     commands.append(autoUpdateListener)
 
     # transform parameters
@@ -98,53 +95,53 @@ def mdlDescription(cliModule):
             field = MDLGroup("Field", parameter.identifier())
 
             if parameter.description:
-                field.append(MDLTag(comment = parameter.description))
+                field.addTag(comment = parameter.description)
 
             if parameter.typ == "image":
                 # FIXME: voxel shift? compression?
                 ioFields = MDLGroup("fields")
-                ioFields.append(MDLTag(instanceName = parameter.identifier()))
+                ioFields.addTag(instanceName = parameter.identifier())
                 if parameter.channel == "input":
                     inputsSection.append(field)
-                    field.append(MDLTag(internalName = "%s.input0" % parameter.identifier()))
+                    field.addTag(internalName = "%s.input0" % parameter.identifier())
                     module = MDLGroup("module", "itkImageFileWriter")
-                    ioFields.append(MDLTag(forceDirectionCosineWrite = True))
+                    ioFields.addTag(forceDirectionCosineWrite = True)
                     x, y = xInput, 160
                     xInput += 200
-                    autoUpdateListener.append(MDLTag(listenField = parameter.identifier()))
+                    autoUpdateListener.addTag(listenField = parameter.identifier())
                 elif parameter.channel == "output":
                     outputsSection.append(field)
-                    field.append(MDLTag(internalName = "%s.output0" % parameter.identifier()))
+                    field.addTag(internalName = "%s.output0" % parameter.identifier())
                     module = MDLGroup("module", "itkImageFileReader")
                     x, y = xOutput, 0
                     xOutput += 200
                 internal = MDLGroup("internal")
-                internal.append(MDLTag(frame = "%d %d 120 64" % (x, y)))
+                internal.addTag(frame = "%d %d 120 64" % (x, y))
                 module.append(internal)
-                ioFields.append(MDLTag(correctSubVoxelShift = True))
+                ioFields.addTag(correctSubVoxelShift = True)
                 module.append(ioFields)
                 mlabFile.append(module)
             elif parameter.typ in SIMPLE_TYPE_MAPPING:
-                field.append(MDLTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ]))
+                field.addTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ])
                 if parameter.default is not None:
-                    field.append(MDLTag('value', parameter.default))
+                    field.addTag('value', parameter.default)
                 parametersSection.append(field)
-                autoApplyListener.append(MDLTag(listenField = parameter.identifier()))
+                autoApplyListener.addTag(listenField = parameter.identifier())
             elif parameter.typ.endswith("-vector"):
-                field.append(MDLTag(type_ = 'String'))
+                field.addTag(type_ = 'String')
                 if parameter.default is not None:
-                    field.append(MDLTag('value', parameter.default))
+                    field.addTag('value', parameter.default)
                 parametersSection.append(field)
-                autoApplyListener.append(MDLTag(listenField = parameter.identifier()))
+                autoApplyListener.addTag(listenField = parameter.identifier())
             elif parameter.typ.endswith("-enumeration"):
-                field.append(MDLTag(type_ = 'Enum'))
+                field.addTag(type_ = 'Enum')
                 items = MDLGroup("items")
                 for item in parameter.elements:
                     #items.append(MDLGroup('item', item))
-                    items.append(MDLTag('item', item))
+                    items.addTag('item', item)
                 field.append(items)
                 parametersSection.append(field)
-                autoApplyListener.append(MDLTag(listenField = parameter.identifier()))
+                autoApplyListener.addTag(listenField = parameter.identifier())
             else:
                 logging.warning("Parameter type %r not yet supported" % parameter.typ)
                 parametersSection.append(
@@ -153,34 +150,34 @@ def mdlDescription(cliModule):
 
             if parameter.constraints:
                 if parameter.constraints.minimum is not None:
-                    field.append(MDLTag(min = parameter.constraints.minimum))
+                    field.addTag(min = parameter.constraints.minimum)
                 if parameter.constraints.maximum is not None:
-                    field.append(MDLTag(max = parameter.constraints.maximum))
+                    field.addTag(max = parameter.constraints.maximum)
 
             if parameter.hidden:
-                field.append(MDLTag(hidden = True))
+                field.addTag(hidden = True)
 
     field = MDLGroup('Field', 'retainTemporaryFiles')
-    field.append(MDLTag(type_ = 'Bool'))
-    field.append(MDLTag(hidden = True)) # no visible effect for parameter fields
+    field.addTag(type_ = 'Bool')
+    field.addTag(hidden = True) # no visible effect for parameter fields
     parametersSection.append(field)
 
     field = MDLGroup('Field', 'commandline')
-    field.append(MDLTag(type_ = 'String'))
-    field.append(MDLTag(hidden = True)) # no visible effect for parameter fields
-    field.append(MDLTag(editable = False))
+    field.addTag(type_ = 'String')
+    field.addTag(hidden = True) # no visible effect for parameter fields
+    field.addTag(editable = False)
     parametersSection.append(field)
 
     field = MDLGroup('Field', 'autoUpdate')
-    field.append(MDLTag(type_ = 'Bool'))
+    field.addTag(type_ = 'Bool')
     parametersSection.append(field)
 
     field = MDLGroup('Field', 'autoApply')
-    field.append(MDLTag(type_ = 'Bool'))
+    field.addTag(type_ = 'Bool')
     parametersSection.append(field)
 
     field = MDLGroup('Field', 'update')
-    field.append(MDLTag(type_ = 'Trigger'))
+    field.addTag(type_ = 'Trigger')
     parametersSection.append(field)
 
     if inputsSection:

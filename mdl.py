@@ -51,6 +51,16 @@ class MDLGroup(list):
         else:
             return "%s {}" % (result, )
 
+    def addGroup(self, *args):
+        result = MDLGroup(*args)
+        self.append(result)
+        return result
+
+    def addTag(self, *args, **kwargs):
+        result = MDLTag(*args, **kwargs)
+        self.append(result)
+        return self
+
 
 class MDLNewline(object):
     @staticmethod
@@ -70,6 +80,11 @@ class MDLComment(object):
 class MDLFile(list):
     def mdl(self):
         return "\n".join(element.mdl() for element in self) + "\n"
+
+    def addGroup(self, *args):
+        result = MDLGroup(*args)
+        self.append(result)
+        return result
 
 
 # --------------------------------------------------------------------
