@@ -128,11 +128,9 @@ def mdlDescription(cliModule):
                     for item in parameter.elements:
                         items.addTag('item', item)
                 else:
-                    logging.warning("Parameter type %r not yet supported" % parameter.typ)
-                    parametersSection.append(
-                        MDLComment("Parameter %r with type %r not supported yet"
-                                   % (parameter.identifier(), parameter.typ)))
-                    continue
+                    logging.warning("Parameter type %r not yet supported (using pass-through String field)"
+                                    % parameter.typ)
+                    field.addTag(type_ = 'String')
 
                 if parameter.default is not None:
                     field.addTag('value', parameter.default)
