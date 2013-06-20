@@ -19,20 +19,21 @@ class ArgumentConverter(object):
     cleaning up the temporary files."""
 
     def __init__(self):
-        self.tempfiles = []
         self._imageFilenames = []
+        self.hasOutputParameters = False
+        self._tempfiles = []
     
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if not ctx.field('retainTemporaryFiles').value:
-            for filename in self.tempfiles:
+            for filename in self._tempfiles:
                 os.unlink(filename)
 
     def mkstemp(self, suffix):
         _, filename = tempfile.mkstemp(suffix = suffix)
-        self.tempfiles.append(filename)
+        self._tempfiles.append(filename)
         return filename
 
     def inputImageFilenames(self):
@@ -53,10 +54,15 @@ class ArgumentConverter(object):
             filename = self.mkstemp('.nrrd') # TODO: look at fileExtensions
             self._imageFilenames.append((parameter, filename))
             return filename
-        elif parameter.isNumericVector():
-            return ",".join(field.value.split())
         else:
-            return str(field.value)
+            if parameter.channel == 'output':
+                self.hasOutputParameters = True
+                if parameter.default is None:
+                    return None # nothing to be passed into the CLI module
+            if parameter.isNumericVector():
+                return ",".join(field.value.split())
+            else:
+                return str(field.value)
 
 def escapeShellArg(s):
     """Bad approximation, preventing stupid mistakes, but also unconditional quoting."""
@@ -73,13 +79,18 @@ def update():
     with ArgumentConverter() as arg:
         for p in options:
             value = arg(p)
-            if value is None:
+            if value is None: # missing optional arg / output arg (without default)
                 continue
             if p.longflag is not None:
                 command.append(p.longflag)
             else:
                 command.append(p.flag)
             command.append(value)
+
+        if arg.hasOutputParameters:
+            command.append('--returnparameterfile')
+            returnParameterFilename = arg.mkstemp('.params')
+            command.append(returnParameterFilename)
 
         for p in arguments:
             value = arg(p)
@@ -99,6 +110,12 @@ def update():
         
         ec = subprocess.call(command)
         if ec == 0:
+            with file(returnParameterFilename) as f:
+                for line in f:
+                    key, value = line.split('=', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    ctx.field(key).value = value
             for p, filename in arg.outputImageFilenames():
                 ioModule = ctx.module(p.identifier())
                 ioModule.field('unresolvedFileName').value = filename

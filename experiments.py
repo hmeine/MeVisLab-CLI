@@ -126,7 +126,6 @@ def mdlDescription(cliModule):
                     field.addTag(type_ = 'Enum')
                     items = field.addGroup("items")
                     for item in parameter.elements:
-                        #items.append(MDLGroup('item', item))
                         items.addTag('item', item)
                 else:
                     logging.warning("Parameter type %r not yet supported" % parameter.typ)
@@ -137,6 +136,9 @@ def mdlDescription(cliModule):
 
                 if parameter.default is not None:
                     field.addTag('value', parameter.default)
+                if parameter.channel == 'output':
+                    field.addTag('editable', False)
+
                 parametersSection.append(field)
                 autoApplyListener.addTag(listenField = parameter.identifier())
 
