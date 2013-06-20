@@ -1,5 +1,5 @@
 from cli_modules import CLIModule
-import subprocess, tempfile, os
+import subprocess, tempfile, os, sys
 
 def updateIfAutoApply():
     if ctx.field("autoApply").value:
@@ -68,7 +68,11 @@ def update():
                 if p.typ == 'image' and p.channel == 'output':
                     ctx.module(p.identifier()).field('open').touch()
         else:
+        elif ec > 0:
             sys.stderr.write("%r returned exitcode %d!\n" % (cliModule.name, ec))
+            clear()
+        else:
+            sys.stderr.write("%r received SIGNAL %d!\n" % (cliModule.name, -ec))
             clear()
 
 def clear():
