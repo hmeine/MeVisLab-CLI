@@ -23,6 +23,7 @@ def mdlDescription(cliModule):
     scriptFile = MDLFile()
     mlabFile = MDLFile()
     mlabFile.append(MDLComment('MDL v1 utf8'))
+    htmlFile = None
 
     # MacroModule definition
     definition = MDLGroup("MacroModule", moduleName)
@@ -42,6 +43,23 @@ def mdlDescription(cliModule):
         definition.append(MDLTag(keywords = "CLI " + cliModule.category.replace('.', ' ')))
 
     definition.append(MDLTag(externalDefinition = "$(LOCAL)/%s.script" % cliModule.name))
+
+    if cliModule.documentation_url:
+        if not cliModule.documentation_url.startswith('http'):
+            logging.warning("%r has a bad documentation url (%r)" % (cliModule.name, cliModule.documentation_url))
+        else:
+            htmlFile = """<html>
+<head>
+<meta http-equiv="refresh" content="1;url=%(url)s">
+<script type="text/javascript">window.location.href = "%(url)s"</script>
+<title>%(name)s documentation</title>
+</head>
+<body>
+<p>You should be automatically redirected to <em>%(name)s</em>'s documentation at <a href="%(url)s">%(url)s</a>.</p>
+</body>
+</html>""" % dict(url = cliModule.documentation_url,
+                  name = cliModule.name)
+            definition.append(MDLTag(documentation = "$(LOCAL)/html/%s.html" % cliModule.name))
 
     # Interface section
     interface = MDLGroup("Interface")
@@ -161,7 +179,7 @@ def mdlDescription(cliModule):
     if parametersSection:
         interface.append(parametersSection)
 
-    return defFile, scriptFile, mlabFile
+    return defFile, scriptFile, mlabFile, htmlFile
 
 cliModules = listCLIExecutables('/Applications/Slicer.app/Contents/lib/Slicer-4.2/cli-modules')
 xmlFiles = glob.glob("xml/*")
@@ -190,7 +208,7 @@ for executablePath in args:
     m = CLIModule(executablePath)
     m.argumentsAndOptions() # performs additional sanity checks
 
-    mdefFile, scriptFile, mlabFile = mdlDescription(m)
+    mdefFile, scriptFile, mlabFile, htmlFile = mdlDescription(m)
     if defFile:
         defFile.append(MDLNewline)
     defFile.extend(mdefFile)
@@ -198,6 +216,9 @@ for executablePath in args:
         f.write(scriptFile.mdl())
     with file("mdl/%s.mlab" % m.name, "w") as f:
         f.write(mlabFile.mdl())
+    if htmlFile is not None:
+        with file("mdl/html/%s.html" % m.name, "w") as f:
+            f.write(htmlFile)
 
 with file("mdl/CLIModules.def", "w") as f:
     f.write(defFile.mdl())
