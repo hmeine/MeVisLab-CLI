@@ -127,6 +127,10 @@ def mdlDescription(cliModule):
                     items = field.addGroup("items")
                     for item in parameter.elements:
                         items.addTag('item', item)
+                elif parameter.typ == 'point':
+                    if parameter.multiple:
+                        logging.warning("multiple points (%r) not yet supported" % parameter.identifier())
+                    field.addTag(type_ = 'Vector3')
                 else:
                     logging.warning("Parameter type %r not yet supported (using pass-through String field)"
                                     % parameter.typ)
