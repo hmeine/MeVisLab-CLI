@@ -117,31 +117,28 @@ def mdlDescription(cliModule):
                 ioFields.addTag(correctSubVoxelShift = True)
                 module.append(ioFields)
                 mlabFile.append(module)
-            elif parameter.typ in SIMPLE_TYPE_MAPPING:
-                field.addTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ])
-                if parameter.default is not None:
-                    field.addTag('value', parameter.default)
-                parametersSection.append(field)
-                autoApplyListener.addTag(listenField = parameter.identifier())
-            elif parameter.typ.endswith("-vector"):
-                field.addTag(type_ = 'String')
-                if parameter.default is not None:
-                    field.addTag('value', parameter.default)
-                parametersSection.append(field)
-                autoApplyListener.addTag(listenField = parameter.identifier())
-            elif parameter.typ.endswith("-enumeration"):
-                field.addTag(type_ = 'Enum')
-                items = field.addGroup("items")
-                for item in parameter.elements:
-                    #items.append(MDLGroup('item', item))
-                    items.addTag('item', item)
-                parametersSection.append(field)
-                autoApplyListener.addTag(listenField = parameter.identifier())
             else:
-                logging.warning("Parameter type %r not yet supported" % parameter.typ)
-                parametersSection.append(
-                    MDLComment("Parameter %r with type %r not supported yet"
-                               % (parameter.identifier(), parameter.typ)))
+                if parameter.typ in SIMPLE_TYPE_MAPPING:
+                    field.addTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ])
+                elif parameter.typ.endswith("-vector"):
+                    field.addTag(type_ = 'String')
+                elif parameter.typ.endswith("-enumeration"):
+                    field.addTag(type_ = 'Enum')
+                    items = field.addGroup("items")
+                    for item in parameter.elements:
+                        #items.append(MDLGroup('item', item))
+                        items.addTag('item', item)
+                else:
+                    logging.warning("Parameter type %r not yet supported" % parameter.typ)
+                    parametersSection.append(
+                        MDLComment("Parameter %r with type %r not supported yet"
+                                   % (parameter.identifier(), parameter.typ)))
+                    continue
+
+                if parameter.default is not None:
+                    field.addTag('value', parameter.default)
+                parametersSection.append(field)
+                autoApplyListener.addTag(listenField = parameter.identifier())
 
             if parameter.constraints:
                 if parameter.constraints.minimum is not None:
