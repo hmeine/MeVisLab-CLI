@@ -76,17 +76,14 @@ def mdlDescription(cliModule):
     commands.addTag(initCommand = 'py: load(%r)' % os.path.abspath(cliModule.path))
     commands.append(MDLNewline)
 
-    listener = MDLGroup('FieldListener', 'update')
-    listener.addTag(command = 'update')
-    commands.append(listener)
+    commands.addGroup('FieldListener', 'update') \
+        .addTag(command = 'update')
 
-    autoApplyListener = MDLGroup('FieldListener', 'autoApply')
-    autoApplyListener.addTag(command = 'updateIfAutoApply')
-    commands.append(autoApplyListener)
+    autoApplyListener = commands.addGroup('FieldListener', 'autoApply') \
+        .addTag(command = 'updateIfAutoApply')
 
-    autoUpdateListener = MDLGroup('FieldListener', 'autoUpdate')
-    autoUpdateListener.addTag(command = 'updateIfAutoUpdate')
-    commands.append(autoUpdateListener)
+    autoUpdateListener = commands.addGroup('FieldListener', 'autoUpdate') \
+        .addTag(command = 'updateIfAutoUpdate')
 
     # transform parameters
     xInput = xOutput = 0
@@ -115,9 +112,8 @@ def mdlDescription(cliModule):
                     module = MDLGroup("module", "itkImageFileReader")
                     x, y = xOutput, 0
                     xOutput += 200
-                internal = MDLGroup("internal")
-                internal.addTag(frame = "%d %d 120 64" % (x, y))
-                module.append(internal)
+                module.addGroup("internal") \
+                    .addTag(frame = "%d %d 120 64" % (x, y))
                 ioFields.addTag(correctSubVoxelShift = True)
                 module.append(ioFields)
                 mlabFile.append(module)
@@ -135,11 +131,10 @@ def mdlDescription(cliModule):
                 autoApplyListener.addTag(listenField = parameter.identifier())
             elif parameter.typ.endswith("-enumeration"):
                 field.addTag(type_ = 'Enum')
-                items = MDLGroup("items")
+                items = field.addGroup("items")
                 for item in parameter.elements:
                     #items.append(MDLGroup('item', item))
                     items.addTag('item', item)
-                field.append(items)
                 parametersSection.append(field)
                 autoApplyListener.addTag(listenField = parameter.identifier())
             else:
@@ -157,28 +152,23 @@ def mdlDescription(cliModule):
             if parameter.hidden:
                 field.addTag(hidden = True)
 
-    field = MDLGroup('Field', 'retainTemporaryFiles')
-    field.addTag(type_ = 'Bool')
-    field.addTag(hidden = True) # no visible effect for parameter fields
-    parametersSection.append(field)
+    parametersSection.addGroup('Field', 'retainTemporaryFiles') \
+        .addTag(type_ = 'Bool') \
+        .addTag(hidden = True) # no visible effect for parameter fields
 
-    field = MDLGroup('Field', 'commandline')
-    field.addTag(type_ = 'String')
-    field.addTag(hidden = True) # no visible effect for parameter fields
-    field.addTag(editable = False)
-    parametersSection.append(field)
+    parametersSection.addGroup('Field', 'commandline') \
+        .addTag(type_ = 'String') \
+        .addTag(hidden = True) \
+        .addTag(editable = False)
 
-    field = MDLGroup('Field', 'autoUpdate')
-    field.addTag(type_ = 'Bool')
-    parametersSection.append(field)
+    parametersSection.addGroup('Field', 'autoUpdate') \
+        .addTag(type_ = 'Bool')
 
-    field = MDLGroup('Field', 'autoApply')
-    field.addTag(type_ = 'Bool')
-    parametersSection.append(field)
+    parametersSection.addGroup('Field', 'autoApply') \
+        .addTag(type_ = 'Bool')
 
-    field = MDLGroup('Field', 'update')
-    field.addTag(type_ = 'Trigger')
-    parametersSection.append(field)
+    parametersSection.addGroup('Field', 'update') \
+        .addTag(type_ = 'Trigger')
 
     if inputsSection:
         interface.append(inputsSection)
