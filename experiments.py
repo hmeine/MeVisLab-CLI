@@ -160,6 +160,17 @@ def mdlDescription(cliModule):
             if parameter.hidden:
                 field.append(MDLTag(hidden = True))
 
+    field = MDLGroup('Field', 'retainTemporaryFiles')
+    field.append(MDLTag(type_ = 'Bool'))
+    field.append(MDLTag(hidden = True)) # no visible effect for parameter fields
+    parametersSection.append(field)
+
+    field = MDLGroup('Field', 'commandline')
+    field.append(MDLTag(type_ = 'String'))
+    field.append(MDLTag(hidden = True)) # no visible effect for parameter fields
+    field.append(MDLTag(editable = False))
+    parametersSection.append(field)
+
     field = MDLGroup('Field', 'autoUpdate')
     field.append(MDLTag(type_ = 'Bool'))
     parametersSection.append(field)

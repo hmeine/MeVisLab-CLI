@@ -14,6 +14,10 @@ def updateIfAutoUpdate():
         clear()
 
 class ArgumentConverter(object):
+    """Takes field values from ctx and formats the arguments for being
+    passed to CLI modules; implemented as a context manager for
+    cleaning up the temporary files."""
+
     def __init__(self):
         self.tempfiles = []
         self._imageFilenames = []
@@ -22,8 +26,9 @@ class ArgumentConverter(object):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        for filename in self.tempfiles:
-            os.unlink(filename)
+        if not ctx.field('retainTemporaryFiles').value:
+            for filename in self.tempfiles:
+                os.unlink(filename)
 
     def mkstemp(self, suffix):
         _, filename = tempfile.mkstemp(suffix = suffix)
@@ -52,6 +57,13 @@ class ArgumentConverter(object):
             return ",".join(field.value.split())
         else:
             return str(field.value)
+
+def escapeShellArg(s):
+    """Bad approximation, preventing stupid mistakes, but also unconditional quoting."""
+    for badChar in ' ;&|':
+        if badChar in s:
+            return "'%s'" % s
+    return s
 
 def update():
     """Execute the CLI module"""
@@ -83,7 +95,8 @@ def update():
             ioModule.field('unresolvedFileName').value = filename
             ioModule.field('save').touch()
 
-        print command
+        ctx.field('commandline').value = ' '.join(map(escapeShellArg, command))
+        
         ec = subprocess.call(command)
         if ec == 0:
             for p, filename in arg.outputImageFilenames():
