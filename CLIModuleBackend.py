@@ -16,6 +16,7 @@ def updateIfAutoUpdate():
 class ArgumentConverter(object):
     def __init__(self):
         self.tempfiles = []
+        self._imageFilenames = []
     
     def __enter__(self):
         return self
@@ -29,12 +30,23 @@ class ArgumentConverter(object):
         self.tempfiles.append(filename)
         return filename
 
+    def inputImageFilenames(self):
+        for p, fn in self._imageFilenames:
+            if p.channel == 'input':
+                yield p, fn
+
+    def outputImageFilenames(self):
+        for p, fn in self._imageFilenames:
+            if p.channel == 'output':
+                yield p, fn
+
     def __call__(self, parameter):
         field = ctx.field(parameter.identifier())
         if parameter.typ == 'image':
-            ioModule = ctx.module(parameter.identifier())
+            if parameter.channel == 'input' and not field.image():
+                return None
             filename = self.mkstemp('.nrrd') # TODO: look at fileExtensions
-            ioModule.field('unresolvedFileName').value = filename
+            self._imageFilenames.append((parameter, filename))
             return filename
         elif parameter.isNumericVector():
             return ",".join(field.value.split())
@@ -48,26 +60,35 @@ def update():
 
     with ArgumentConverter() as arg:
         for p in options:
+            value = arg(p)
+            if value is None:
+                continue
             if p.longflag is not None:
                 command.append(p.longflag)
             else:
                 command.append(p.flag)
-            command.append(arg(p))
+            command.append(value)
 
         for p in arguments:
-            command.append(arg(p))
+            value = arg(p)
+            if value is None:
+                sys.stderr.write("%s: Input image %r is not optional!\n" % (
+                    cliModule.name, p.identifier()))
+                clear()
+                return
+            command.append(value)
 
-        for p in cliModule.parameters():
-            if p.typ == 'image' and p.channel == 'input':
-                ctx.module(p.identifier()).field('save').touch()
+        for p, filename in arg.inputImageFilenames():
+            ioModule = ctx.module(p.identifier())
+            ioModule.field('unresolvedFileName').value = filename
+            ioModule.field('save').touch()
 
         print command
         ec = subprocess.call(command)
         if ec == 0:
-            for p in cliModule.parameters():
-                if p.typ == 'image' and p.channel == 'output':
-                    ctx.module(p.identifier()).field('open').touch()
-        else:
+            for p, filename in arg.outputImageFilenames():
+                ioModule = ctx.module(p.identifier())
+                ioModule.field('unresolvedFileName').value = filename
         elif ec > 0:
             sys.stderr.write("%r returned exitcode %d!\n" % (cliModule.name, ec))
             clear()
