@@ -138,11 +138,13 @@ def mdlDescription(cliModule):
 
                 if parameter.default is not None:
                     field.addTag('value', parameter.default)
+
                 if parameter.channel == 'output':
                     field.addTag('editable', False)
+                else:
+                    autoApplyListener.addTag(listenField = parameter.identifier())
 
                 parametersSection.append(field)
-                autoApplyListener.addTag(listenField = parameter.identifier())
 
             if parameter.constraints:
                 if parameter.constraints.minimum is not None:
