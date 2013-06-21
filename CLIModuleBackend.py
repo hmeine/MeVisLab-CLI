@@ -68,6 +68,11 @@ class ArgumentConverter(object):
                     return None # nothing to be passed into the CLI module
             if parameter.isNumericVector():
                 return ",".join(field.value.split())
+            elif parameter.typ == 'boolean':
+                if field.value:
+                    return True # just set the flag, don't pass an arg
+                else:
+                    return None # option not set -> no flag must be passed
             else:
                 return str(field.value)
 
@@ -88,13 +93,18 @@ def update():
     with ArgumentConverter() as arg:
         for p in options:
             value = arg(p)
-            if value is None: # missing optional arg / output arg (without default)
+            if value is None: # missing optional arg / output arg (without default) / false bool
                 continue
+
             if p.longflag is not None:
                 command.append(p.longflag)
             else:
                 command.append(p.flag)
-            command.append(value)
+
+            # boolean is special cased, because we need to decide
+            # about passing --longflag without arg:
+            if value != True:
+                command.append(value)
 
         if outputs:
             command.append('--returnparameterfile')
@@ -141,10 +151,10 @@ def update():
                 ioModule = ctx.module(p.identifier())
                 ioModule.field('unresolvedFileName').value = filename
         elif ec > 0:
-            sys.stderr.write("%r returned exitcode %d!\n" % (cliModule.name, ec))
+            sys.stderr.write("%s returned exitcode %d!\n" % (cliModule.name, ec))
             clear()
         else:
-            sys.stderr.write("%r received SIGNAL %d!\n" % (cliModule.name, -ec))
+            sys.stderr.write("%s received SIGNAL %d!\n" % (cliModule.name, -ec))
             clear()
 
 def clear():
