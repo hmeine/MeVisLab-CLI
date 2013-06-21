@@ -191,6 +191,44 @@ def mdlDescription(cliModule):
     if parametersSection:
         interface.append(parametersSection)
 
+    window = scriptFile.addGroup('Window', 'ClI GUI')
+
+    boxes = []
+    advanced = []
+    for parameters in cliModule:
+        box = MDLGroup('Box', parameters.label)
+        for parameter in parameters:
+            if parameter.isExternalType():
+                continue
+            field = box.addGroup('Field', parameter.identifier())
+            if parameter.constraints:
+                if parameter.constraints.step is not None:
+                    field.addTag(step = parameter.constraints.step)
+        if not box:
+            continue # skip empty boxes (e.g. only image I/O)
+        if parameters.advanced:
+            advanced.append(box)
+        else:
+            boxes.append(box)
+
+    for groups, category in ((boxes, 'Main'),
+                             (advanced, 'Advanced')):
+        if not groups:
+            continue
+        if len(groups) == 1:
+            window.addGroup('Category', category).extend(groups[0])
+            continue
+        pages = [[]]
+        for group in groups:
+            if sum(len(box) for box in pages[-1]) > 15:
+                pages.append([])
+            pages[-1].append(group)
+        if len(pages) == 1:
+            window.addGroup('Category', category).extend(pages[0])
+        else:
+            for i, page in enumerate(pages):
+                window.addGroup('Category', '%s %d' % (category, i+1)).extend(page)
+
     # debug Window section
     scriptFile.append(MDLNewline)
     scriptFile.append(MDLInclude('$(LOCAL)/../DebugWindow.script'))
