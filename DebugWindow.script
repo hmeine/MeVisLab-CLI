@@ -1,0 +1,31 @@
+Window "Execution Debugging" {
+  Vertical {
+    expandY = yes
+    Field cliExecutablePath {
+      title = "Executable Path"
+    }
+    Field retainTemporaryFiles {}
+    Button update {}
+
+    Separator { direction = Horizontal }
+
+    TextView debugCommandline {
+      title       = "Command"
+      visibleRows = 3
+    }
+    TextView debugStdOut {
+      expandY     = true
+      title       = "StdOut"
+      visibleRows = 7
+      console     = True
+      wrap        = off
+    }
+    TextView debugStdErr {
+      expandY     = true
+      title       = "StdErr"
+      visibleRows = 7
+      console     = True
+      wrap        = off
+    }
+  }
+}

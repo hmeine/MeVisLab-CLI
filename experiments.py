@@ -4,7 +4,7 @@ import os, logging, sys, glob, re
 logging.basicConfig(stream = sys.stdout, level = 0) # easy grep'ping
 
 from cli_modules import listCLIExecutables, CLIModule
-from mdl import MDLGroup, MDLTag, MDLNewline, MDLComment, MDLFile
+from mdl import MDLGroup, MDLNewline, MDLComment, MDLFile, MDLInclude
 
 SIMPLE_TYPE_MAPPING = {
     'boolean'   : 'Bool',
@@ -68,12 +68,13 @@ def mdlDescription(cliModule):
     parametersSection = MDLGroup("Parameters")
 
     # Commands section
+    scriptFile.append(MDLNewline)
     commands = scriptFile.addGroup("Commands")
 
     commands.addTag(source = '$(LOCAL)/../CLIModuleBackend.py')
     commands.append(MDLNewline)
 
-    commands.addTag(initCommand = 'py: load(%r)' % os.path.abspath(cliModule.path))
+    commands.addTag(initCommand = 'checkCLI')
     commands.append(MDLNewline)
 
     commands.addGroup('FieldListener', 'update') \
@@ -156,12 +157,23 @@ def mdlDescription(cliModule):
                 field.addTag(hidden = True)
 
     parametersSection.addGroup('Field', 'retainTemporaryFiles') \
-        .addTag(type_ = 'Bool') \
-        .addTag(hidden = True) # no visible effect for parameter fields
+        .addTag(type_ = 'Bool') # no visible effect for parameter fields
 
-    parametersSection.addGroup('Field', 'commandline') \
+    parametersSection.addGroup('Field', 'cliExecutablePath') \
         .addTag(type_ = 'String') \
-        .addTag(hidden = True) \
+        .addTag('value', os.path.abspath(cliModule.path)) \
+        .addTag(persistent = False)
+
+    parametersSection.addGroup('Field', 'debugCommandline') \
+        .addTag(type_ = 'String') \
+        .addTag(editable = False)
+
+    parametersSection.addGroup('Field', 'debugStdOut') \
+        .addTag(type_ = 'String') \
+        .addTag(editable = False)
+
+    parametersSection.addGroup('Field', 'debugStdErr') \
+        .addTag(type_ = 'String') \
         .addTag(editable = False)
 
     parametersSection.addGroup('Field', 'autoUpdate') \
@@ -180,6 +192,10 @@ def mdlDescription(cliModule):
     if parametersSection:
         interface.append(parametersSection)
 
+    # debug Window section
+    scriptFile.append(MDLNewline)
+    scriptFile.append(MDLInclude('$(LOCAL)/../DebugWindow.script'))
+
     return defFile, scriptFile, mlabFile, htmlFile
 
 def cliToMacroModule(executablePath, targetDirectory, defFile = True):
@@ -190,7 +206,7 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
     logging.info(executablePath)
     #ET.dump(elementTree)
     m = CLIModule(executablePath)
-    m.argumentsAndOptions() # performs additional sanity checks
+    m.classifyParameters() # performs additional sanity checks
 
     mdefFile, scriptFile, mlabFile, htmlFile = mdlDescription(m)
     if defFile is True:

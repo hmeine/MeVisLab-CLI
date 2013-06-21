@@ -32,9 +32,9 @@ class ArgumentConverter(object):
                 os.unlink(filename)
 
     def mkstemp(self, suffix):
-        _, filename = tempfile.mkstemp(suffix = suffix)
+        fd, filename = tempfile.mkstemp(suffix = suffix)
         self._tempfiles.append(filename)
-        return filename
+        return fd, filename
 
     def inputImageFilenames(self):
         for p, fn in self._imageFilenames:
@@ -46,13 +46,20 @@ class ArgumentConverter(object):
             if p.channel == 'output':
                 yield p, fn
 
+    def parameterAvailable(self, parameter):
+        field = ctx.field(parameter.identifier())
+        if parameter.typ == 'image' and field.image():
+            return True
+        return False
+
     def __call__(self, parameter):
         field = ctx.field(parameter.identifier())
-        if parameter.typ == 'image':
-            if parameter.channel == 'input' and not field.image():
+        if parameter.isExternalType():
+            if parameter.channel == 'input' and not self.parameterAvailable(parameter):
                 return None
-            filename = self.mkstemp('.nrrd') # TODO: look at fileExtensions
-            self._imageFilenames.append((parameter, filename))
+            _, filename = self.mkstemp(parameter.defaultExtension()) # TODO: look at fileExtensions
+            if parameter.typ == 'image':
+                self._imageFilenames.append((parameter, filename))
             return filename
         else:
             if parameter.channel == 'output':
@@ -74,7 +81,9 @@ def escapeShellArg(s):
 def update():
     """Execute the CLI module"""
     command = [cliModule.path]
-    arguments, options = cliModule.argumentsAndOptions()
+    arguments, options, outputs = cliModule.classifyParameters()
+
+    returnParameterFilename = None
 
     with ArgumentConverter() as arg:
         for p in options:
@@ -87,9 +96,9 @@ def update():
                 command.append(p.flag)
             command.append(value)
 
-        if arg.hasOutputParameters:
+        if outputs:
             command.append('--returnparameterfile')
-            returnParameterFilename = arg.mkstemp('.params')
+            _, returnParameterFilename = arg.mkstemp('.params')
             command.append(returnParameterFilename)
 
         for p in arguments:
@@ -106,16 +115,28 @@ def update():
             ioModule.field('unresolvedFileName').value = filename
             ioModule.field('save').touch()
 
-        ctx.field('commandline').value = ' '.join(map(escapeShellArg, command))
-        
-        ec = subprocess.call(command)
+        ctx.field('debugCommandline').value = ' '.join(map(escapeShellArg, command))
+
+        stdout, stdoutFilename = arg.mkstemp('.stdout')
+        stderr, stderrFilename = arg.mkstemp('.stderr')
+        p = subprocess.Popen(command, stdout = stdout, stderr = stderr)
+        ec = p.wait()
+        os.close(stdout)
+        os.close(stderr)
+
+        with file(stdoutFilename) as f:
+            ctx.field('debugStdOut').value = f.read()
+        with file(stderrFilename) as f:
+            ctx.field('debugStdErr').value = f.read()
+
         if ec == 0:
-            with file(returnParameterFilename) as f:
-                for line in f:
-                    key, value = line.split('=', 1)
-                    key = key.strip()
-                    value = value.strip()
-                    ctx.field(key).value = value
+            if returnParameterFilename:
+                with file(returnParameterFilename) as f:
+                    for line in f:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        ctx.field(key).value = value
             for p, filename in arg.outputImageFilenames():
                 ioModule = ctx.module(p.identifier())
                 ioModule.field('unresolvedFileName').value = filename
@@ -131,6 +152,6 @@ def clear():
     for o in ctx.outputs():
         ctx.module(o).field("close").touch()
 
-def load(path):
+def checkCLI():
     global cliModule
-    cliModule = CLIModule(path)
+    cliModule = CLIModule(ctx.field('cliExecutablePath').value)

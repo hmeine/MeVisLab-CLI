@@ -87,6 +87,13 @@ class MDLFile(list):
         return result
 
 
+class MDLInclude(object):
+    def __init__(self, include):
+        self.include = include
+
+    def mdl(self, indentation = ""):
+        return "%s#include %s" % (indentation, mdlValue(self.include))
+
 # --------------------------------------------------------------------
 
 def test_simple_quoting():
