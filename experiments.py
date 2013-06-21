@@ -198,7 +198,7 @@ def mdlDescription(cliModule):
     if parametersSection:
         interface.append(parametersSection)
 
-    window = scriptFile.addGroup('Window', 'ClI GUI')
+    window = scriptFile.addGroup('Window', 'ClI GUI').addTag(expandY = True)
 
     boxes = []
     advanced = []
