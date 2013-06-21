@@ -88,73 +88,72 @@ def mdlDescription(cliModule):
 
     # transform parameters
     xInput = xOutput = 0
-    for parameters in cliModule:
-        for parameter in parameters:
-            field = MDLGroup("Field", parameter.identifier())
+    for parameter in cliModule.parameters():
+        field = MDLGroup("Field", parameter.identifier())
 
-            if parameter.description:
-                field.addTag(comment = parameter.description)
+        if parameter.description:
+            field.addTag(comment = parameter.description)
 
-            if parameter.typ == "image":
-                # FIXME: voxel shift? compression?
-                ioFields = MDLGroup("fields")
-                ioFields.addTag(instanceName = parameter.identifier())
-                if parameter.channel == "input":
-                    inputsSection.append(field)
-                    field.addTag(internalName = "%s.input0" % parameter.identifier())
-                    module = MDLGroup("module", "itkImageFileWriter")
-                    ioFields.addTag(forceDirectionCosineWrite = True)
-                    x, y = xInput, 160
-                    xInput += 200
-                    autoUpdateListener.addTag(listenField = parameter.identifier())
-                elif parameter.channel == "output":
-                    outputsSection.append(field)
-                    field.addTag(internalName = "%s.output0" % parameter.identifier())
-                    module = MDLGroup("module", "itkImageFileReader")
-                    x, y = xOutput, 0
-                    xOutput += 200
-                module.addGroup("internal") \
-                    .addTag(frame = "%d %d 120 64" % (x, y))
-                ioFields.addTag(correctSubVoxelShift = True)
-                module.append(ioFields)
-                mlabFile.append(module)
+        if parameter.typ == "image":
+            # FIXME: voxel shift? compression?
+            ioFields = MDLGroup("fields")
+            ioFields.addTag(instanceName = parameter.identifier())
+            if parameter.channel == "input":
+                inputsSection.append(field)
+                field.addTag(internalName = "%s.input0" % parameter.identifier())
+                module = MDLGroup("module", "itkImageFileWriter")
+                ioFields.addTag(forceDirectionCosineWrite = True)
+                x, y = xInput, 160
+                xInput += 200
+                autoUpdateListener.addTag(listenField = parameter.identifier())
+            elif parameter.channel == "output":
+                outputsSection.append(field)
+                field.addTag(internalName = "%s.output0" % parameter.identifier())
+                module = MDLGroup("module", "itkImageFileReader")
+                x, y = xOutput, 0
+                xOutput += 200
+            module.addGroup("internal") \
+                .addTag(frame = "%d %d 120 64" % (x, y))
+            ioFields.addTag(correctSubVoxelShift = True)
+            module.append(ioFields)
+            mlabFile.append(module)
+        else:
+            if parameter.typ in SIMPLE_TYPE_MAPPING:
+                field.addTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ])
+            elif parameter.typ.endswith("-vector"):
+                field.addTag(type_ = 'String')
+            elif parameter.typ.endswith("-enumeration"):
+                field.addTag(type_ = 'Enum')
+                items = field.addGroup("items")
+                for item in parameter.elements:
+                    items.addTag('item', item)
+            elif parameter.typ == 'point':
+                if parameter.multiple:
+                    logging.warning("multiple points (%r) not yet supported" % parameter.identifier())
+                field.addTag(type_ = 'Vector3')
             else:
-                if parameter.typ in SIMPLE_TYPE_MAPPING:
-                    field.addTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ])
-                elif parameter.typ.endswith("-vector"):
-                    field.addTag(type_ = 'String')
-                elif parameter.typ.endswith("-enumeration"):
-                    field.addTag(type_ = 'Enum')
-                    items = field.addGroup("items")
-                    for item in parameter.elements:
-                        items.addTag('item', item)
-                elif parameter.typ == 'point':
-                    if parameter.multiple:
-                        logging.warning("multiple points (%r) not yet supported" % parameter.identifier())
-                    field.addTag(type_ = 'Vector3')
-                else:
-                    logging.warning("Parameter type %r not yet supported (using pass-through String field)"
-                                    % parameter.typ)
-                    field.addTag(type_ = 'String')
+                logging.warning("Parameter type %r not yet supported (using pass-through String field)"
+                                % parameter.typ)
+                field.addTag(type_ = 'String')
 
-                if parameter.default is not None:
-                    field.addTag('value', parameter.default)
+            if parameter.default is not None:
+                field.addTag('value', parameter.default)
 
-                if parameter.channel == 'output':
-                    field.addTag('editable', False)
-                else:
-                    autoApplyListener.addTag(listenField = parameter.identifier())
+            if parameter.channel == 'output':
+                field.addTag('editable', False)
+            else:
+                autoApplyListener.addTag(listenField = parameter.identifier())
 
-                parametersSection.append(field)
+            parametersSection.append(field)
 
-            if parameter.constraints:
-                if parameter.constraints.minimum is not None:
-                    field.addTag(min = parameter.constraints.minimum)
-                if parameter.constraints.maximum is not None:
-                    field.addTag(max = parameter.constraints.maximum)
+        if parameter.constraints:
+            if parameter.constraints.minimum is not None:
+                field.addTag(min = parameter.constraints.minimum)
+            if parameter.constraints.maximum is not None:
+                field.addTag(max = parameter.constraints.maximum)
 
-            if parameter.hidden:
-                field.addTag(hidden = True)
+        if parameter.hidden:
+            field.addTag(hidden = True)
 
     parametersSection.addGroup('Field', 'retainTemporaryFiles') \
         .addTag(type_ = 'Bool') # no visible effect for parameter fields
