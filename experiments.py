@@ -198,9 +198,11 @@ def mdlDescription(cliModule):
     if parametersSection:
         interface.append(parametersSection)
 
-    window = scriptFile.addGroup('Window', 'ClI GUI').addTag(expandY = True)
+    window = scriptFile.addGroup('Window', 'CLI GUI') \
+        .addGroup('Vertical') \
+        .addTag(expandY = True)
 
-    boxes = []
+    main = []
     advanced = []
     for parameters in cliModule:
         box = MDLGroup('Box', parameters.label)
@@ -218,25 +220,47 @@ def mdlDescription(cliModule):
         if parameters.advanced:
             advanced.append(box)
         else:
-            boxes.append(box)
+            main.append(box)
 
-    for groups, category in ((boxes, 'Main'),
-                             (advanced, 'Advanced')):
-        if not groups:
-            continue
-        if len(groups) == 1:
-            window.addGroup('Category', category).extend(groups[0])
+    # got (non-empty) groups, distribute over multiple tabs:
+    tabs = []
+    for boxes, category in ((main, 'Main'),
+                            (advanced, 'Advanced')):
+        if not boxes:
             continue
         pages = [[]]
-        for group in groups:
-            if sum(countFields(box) for box in pages[-1]) > 15: # TODO: should skip tooltip tag for len()
+        for box in boxes:
+            if sum(countFields(box) for box in pages[-1]) > 15:
                 pages.append([])
-            pages[-1].append(group)
+            pages[-1].append(box)
+
+        # assign names to tabs:
         if len(pages) == 1:
-            window.addGroup('Category', category).extend(pages[0])
+            tabs.append((category, pages[0]))
         else:
             for i, page in enumerate(pages):
-                window.addGroup('Category', '%s %d' % (category, i+1)).extend(page)
+                tabs.append(('%s %d' % (category, i+1), page))
+
+    if len(tabs) == 1:
+        title, page = tabs[0]
+        if len(page) == 1:
+            window.extend(page[0])
+        else:
+            window.extend(page)
+    else:
+        tabView = window.addGroup("TabView")
+        for title, page in tabs:
+            tab = tabView.addGroup('Category', title)
+            if len(page) == 1:
+                tab.extend(page[0])
+            else:
+                tab.extend(page)
+
+    # execution controls
+    hori = window.addGroup("Horizontal")
+    hori.addGroup('Field', 'autoApply')
+    hori.addGroup('Field', 'autoUpdate')
+    hori.addGroup('Button', 'update')
 
     # debug Window section
     scriptFile.append(MDLNewline)
