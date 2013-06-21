@@ -16,6 +16,13 @@ SIMPLE_TYPE_MAPPING = {
     'file'      : 'String',
     }
 
+def countFields(box):
+    result = 0
+    for el in box:
+        if isinstance(el, MDLGroup) and el.tagName == 'Field':
+            result += 1
+    return result
+
 def mdlDescription(cliModule):
     moduleName = "CLI_" + cliModule.name
 
@@ -197,6 +204,8 @@ def mdlDescription(cliModule):
     advanced = []
     for parameters in cliModule:
         box = MDLGroup('Box', parameters.label)
+        if parameters.description:
+            box.addTag(tooltip = parameters.description)
         for parameter in parameters:
             if parameter.isExternalType():
                 continue
@@ -204,7 +213,7 @@ def mdlDescription(cliModule):
             if parameter.constraints:
                 if parameter.constraints.step is not None:
                     field.addTag(step = parameter.constraints.step)
-        if not box:
+        if not countFields(box):
             continue # skip empty boxes (e.g. only image I/O)
         if parameters.advanced:
             advanced.append(box)
@@ -220,7 +229,7 @@ def mdlDescription(cliModule):
             continue
         pages = [[]]
         for group in groups:
-            if sum(len(box) for box in pages[-1]) > 15:
+            if sum(countFields(box) for box in pages[-1]) > 15: # TODO: should skip tooltip tag for len()
                 pages.append([])
             pages[-1].append(group)
         if len(pages) == 1:
