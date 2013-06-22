@@ -1,9 +1,7 @@
-import os, logging, sys, glob, re
-#logging.basicConfig(format='  %(asctime)s %(message)s')
-#logging.basicConfig(filename = 'warnings.txt', level = 0)
-logging.basicConfig(stream = sys.stdout, level = 0) # easy grep'ping
+import os, logging, re
+logger = logging.getLogger(__name__)
 
-from cli_modules import listCLIExecutables, CLIModule
+from cli_modules import isCLIExecutable, CLIModule
 from mdl import MDLGroup, MDLNewline, MDLComment, MDLFile, MDLInclude
 
 SIMPLE_TYPE_MAPPING = {
@@ -12,6 +10,7 @@ SIMPLE_TYPE_MAPPING = {
     'float'     : 'Float',
     'double'    : 'Double',
     'string'    : 'String',
+
     'directory' : 'String',
     'file'      : 'String',
     }
@@ -24,6 +23,16 @@ def countFields(box):
     return result
 
 def mdlDescription(cliModule):
+    """Given CLIModule instance, return tuple (defFile, scriptFile,
+    mlabFile, htmlFile) containing a MeVisLab macro module definition.
+    The first three items are MDLFile instances that can be converted
+    into strings using their mdl() methods, while htmlFile is actually
+    a string containing an HTML file (that redirects to the module's
+    documentation URL).  If no proper documentation URL is given,
+    htmlFile is None.  The .def file references the .script file in
+    the same directory, and the htmlFile should be placed in a
+    subdirectory named 'html'."""
+    
     moduleName = "CLI_" + cliModule.name
 
     defFile = MDLFile()
@@ -52,7 +61,7 @@ def mdlDescription(cliModule):
 
     if cliModule.documentation_url:
         if not cliModule.documentation_url.startswith('http'):
-            logging.warning("%r has a bad documentation url (%r)" % (cliModule.name, cliModule.documentation_url))
+            logger.warning("%r has a bad documentation url (%r)" % (cliModule.name, cliModule.documentation_url))
         else:
             htmlFile = """<html>
 <head>
@@ -136,10 +145,10 @@ def mdlDescription(cliModule):
                     items.addTag('item', item)
             elif parameter.typ == 'point':
                 if parameter.multiple:
-                    logging.warning("multiple points (%r) not yet supported" % parameter.identifier())
+                    logger.warning("multiple points (%r) not yet supported" % parameter.identifier())
                 field.addTag(type_ = 'Vector3')
             else:
-                logging.warning("Parameter type %r not yet supported (using pass-through String field)"
+                logger.warning("Parameter type %r not yet supported (using pass-through String field)"
                                 % parameter.typ)
                 field.addTag(type_ = 'String')
 
@@ -272,8 +281,11 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
     """Write .script/.mlab files for the CLI module `executablePath`
     to `targetDirectory`.  If `defFile` is set to an MLDFile instance,
     the .def file contents are appended to that object, otherwise a
-    .def file for that single module gets written."""
-    logging.info(executablePath)
+    .def file for that single module gets written.  (An HTML
+    documentation file may get written to an 'html' subdirectory,
+    too.)"""
+    
+    logger.info("processing %s..." % executablePath)
     #ET.dump(elementTree)
     m = CLIModule(executablePath)
     m.classifyParameters() # performs additional sanity checks
@@ -283,7 +295,7 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
         with file(os.path.join(targetDirectory, "%s.def" % m.name), "w") as f:
             f.write(mdefFile.mdl())
     else:
-        if defFile:
+        if defFile: # not empty, add separating newline
             defFile.append(MDLNewline)
         defFile.extend(mdefFile)
 
@@ -297,28 +309,24 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
 
     return mdefFile
 
-cliModules = listCLIExecutables('/Applications/Slicer.app/Contents/lib/Slicer-4.2/cli-modules')
-xmlFiles = glob.glob("xml/*")
+def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def'):
+    """Imports any number of CLI modules at once.  `importPaths` shall
+    contain either directory names to be scanned (non-recursively) or
+    paths of CLI executables.  All module definitions will be put into
+    the same .def file, and all generated files will be written to
+    `targetDirectory` (or into an 'html' subdirectory).  See
+    `cliToMacroModule` for more information."""
 
-args = sys.argv[1:] or xmlFiles # cliModules
+    defFile = MDLFile()
 
-# for e in cliModules:
-#     import subprocess
-#     with open("xml/%s" % os.path.basename(e), "w") as f:
-#         p = subprocess.Popen([e, '--xml'], stdout = subprocess.PIPE)
-#         f.write(p.stdout.read())
+    for path in importPaths:
+        if os.path.isdir(path):
+            for entry in sorted(os.listdir(path)):
+                entry = os.path.join(path, entry)
+                if isCLIExecutable(entry):
+                    importPaths.append(entry)
+        else:
+            cliToMacroModule(path, targetDirectory, defFile)
 
-# SLOW, should probably be deleted:
-# def listCLIModules(baseDir):
-#     result = []
-#     for executable in listCLIExecutables(baseDir):
-#         result.append(getXMLDescription(executable))
-#     return result
-
-defFile = MDLFile()
-
-for executablePath in args:
-    cliToMacroModule(executablePath, "mdl", defFile)
-
-with file("mdl/CLIModules.def", "w") as f:
-    f.write(defFile.mdl())
+    with file(os.path.join(targetDirectory, defFileName), "w") as f:
+        f.write(defFile.mdl())
