@@ -9,7 +9,7 @@ def updateIfAutoApply():
 
 def updateIfAutoUpdate():
     if ctx.field("autoUpdate").value:
-        update()
+        tryUpdate()
     else:
         clear()
 
@@ -83,8 +83,9 @@ def escapeShellArg(s):
             return "'%s'" % s
     return s
 
-def update():
-    """Execute the CLI module"""
+def tryUpdate():
+    """Execute the CLI module, but don't warn about missing inputs (used for autoUpdate)"""
+
     command = [cliModule.path]
     arguments, options, outputs = cliModule.classifyParameters()
 
@@ -114,10 +115,8 @@ def update():
         for p in arguments:
             value = arg(p)
             if value is None:
-                sys.stderr.write("%s: Input image %r is not optional!\n" % (
-                    cliModule.name, p.identifier()))
                 clear()
-                return
+                return "%s: Input image %r is not optional!\n" % (cliModule.name, p.identifier())
             command.append(value)
 
         for p, filename in arg.inputImageFilenames():
@@ -151,11 +150,17 @@ def update():
                 ioModule = ctx.module(p.identifier())
                 ioModule.field('unresolvedFileName').value = filename
         elif ec > 0:
-            sys.stderr.write("%s returned exitcode %d!\n" % (cliModule.name, ec))
             clear()
+            return "%s returned exitcode %d!\n" % (cliModule.name, ec)
         else:
-            sys.stderr.write("%s received SIGNAL %d!\n" % (cliModule.name, -ec))
             clear()
+            return "%s received SIGNAL %d!\n" % (cliModule.name, -ec)
+
+def update():
+    """Execute the CLI module"""
+    failReason = tryUpdate()
+    if failReason:
+        sys.stderr.write(failReason)
 
 def clear():
     """Close all itkImageFileReaders such as to make the output image states invalid"""
