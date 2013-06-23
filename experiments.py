@@ -5,9 +5,7 @@ logging.basicConfig(stream = sys.stdout, level = 0) # easy grep'ping
 
 import cli_to_macro
 
-#cliModules = listCLIExecutables('/Applications/Slicer.app/Contents/lib/Slicer-4.2/cli-modules')
-xmlFiles = glob.glob("xml/*")
+args = sys.argv[1:] or ['/Applications/Slicer.app/Contents/lib/Slicer-4.2/cli-modules']
 
-args = sys.argv[1:] or xmlFiles # cliModules
-
-cli_to_macro.importAllCLIs(args, 'mdl')
+for index, total, path in cli_to_macro.importAllCLIs(args, 'mdl'):
+        print "%d/%d importing %s..." % (index, total, path)

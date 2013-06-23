@@ -7,7 +7,8 @@ def doImport():
     if not os.path.exists(targetDirectory):
         os.mkdir(targetDirectory)
     
-    cli_to_macro.importAllCLIs(importPaths, targetDirectory)
+    for index, total, path in cli_to_macro.importAllCLIs(importPaths, targetDirectory):
+        print "%d/%d importing %s..." % (index, total, path)
 
 def init():
     if not ctx.field('importPaths').value:

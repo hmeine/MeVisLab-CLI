@@ -366,23 +366,33 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
     return mdefFile
 
 def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def'):
-    """Imports any number of CLI modules at once.  `importPaths` shall
-    contain either directory names to be scanned (non-recursively) or
-    paths of CLI executables.  All module definitions will be put into
-    the same .def file, and all generated files will be written to
-    `targetDirectory` (or into an 'html' subdirectory).  See
-    `cliToMacroModule` for more information."""
+    """Generator function that imports any number of CLI modules at
+    once.  `importPaths` shall contain either directory names to be
+    scanned (non-recursively) or paths of CLI executables.  Before
+    importing, the target directory will be wiped.  All module
+    definitions will be put into the same .def file, and all generated
+    files will be written to `targetDirectory` (or into an 'html'
+    subdirectory).  See `cliToMacroModule` for more information.  The
+    generator will yield (index, total, path) tuples for progress
+    display (index being 1-based for this purpose)."""
 
     defFile = MDLFile()
+
+    executablePaths = []
 
     for path in importPaths:
         if os.path.isdir(path):
             for entry in sorted(os.listdir(path)):
                 entry = os.path.join(path, entry)
                 if isCLIExecutable(entry):
-                    importPaths.append(entry)
-        else:
-            cliToMacroModule(path, targetDirectory, defFile)
+                    executablePaths.append(entry)
+        elif isCLIExecutable(path):
+            executablePaths.append(path)
+
+    print executablePaths
+    for i, path in enumerate(executablePaths):
+        yield (i+1, len(executablePaths), path)
+        cliToMacroModule(path, targetDirectory, defFile)
 
     with file(os.path.join(targetDirectory, defFileName), "w") as f:
         f.write(defFile.mdl())
