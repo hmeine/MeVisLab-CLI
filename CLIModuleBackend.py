@@ -67,7 +67,7 @@ class ArgumentConverter(object):
                 if parameter.default is None:
                     return None # nothing to be passed into the CLI module
             if parameter.isNumericVector():
-                return ",".join(field.value.split())
+                return ",".join(field.stringValue().split())
             elif parameter.typ == 'boolean':
                 if field.value:
                     return True # just set the flag, don't pass an arg
