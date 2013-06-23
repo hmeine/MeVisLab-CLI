@@ -1,0 +1,37 @@
+Interface {
+  Parameters {
+    Field importPaths {
+      type = String
+    }
+    Field targetDirectory {
+      type = String
+      value = $(LOCAL)/generated
+    }
+    Field import {
+      type = Trigger
+    }
+  }
+}
+
+Commands {
+  source = $(LOCAL)/CLIImporter.py
+
+  initCommand = init
+
+  FieldListener import { command = doImport }
+}
+
+Window {
+  Vertical {
+    Field importPaths {}
+    Field targetDirectory {
+      browseButton = yes
+      browseMode = Directory
+    }
+    Horizontal {
+      HSpacer {}
+      Button import {}
+      HSpacer {}
+    }
+  }
+}

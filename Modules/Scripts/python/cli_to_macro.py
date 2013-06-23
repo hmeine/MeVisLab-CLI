@@ -315,6 +315,8 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
     with file(os.path.join(targetDirectory, "%s.mlab" % m.name), "w") as f:
         f.write(mlabFile.mdl())
     if htmlFile is not None:
+        if not os.path.exists(os.path.join(targetDirectory, "html")):
+            os.mkdir(os.path.join(targetDirectory, "html"))
         with file(os.path.join(targetDirectory, "html", "%s.html" % m.name), "w") as f:
             f.write(htmlFile)
 
