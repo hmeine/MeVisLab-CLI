@@ -1,5 +1,5 @@
 from cli_modules import CLIModule
-import subprocess, tempfile, os, sys
+import subprocess, tempfile, os, sys, shutil
 
 def updateIfAutoApply():
     if ctx.field("autoApply").value:
@@ -21,6 +21,7 @@ class ArgumentConverter(object):
     def __init__(self):
         self._imageFilenames = []
         self.hasOutputParameters = False
+        self._tempdir = None
         self._tempfiles = []
     
     def __enter__(self):
@@ -28,11 +29,13 @@ class ArgumentConverter(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if not ctx.field('retainTemporaryFiles').value:
-            for filename in self._tempfiles:
-                os.unlink(filename)
+            if self._tempdir is not None:
+                shutil.rmtree(self._tempdir)
 
     def mkstemp(self, suffix):
-        fd, filename = tempfile.mkstemp(suffix = suffix)
+        if self._tempdir is None:
+            self._tempdir = tempfile.mkdtemp() # TODO: prefix = modulename?
+        fd, filename = tempfile.mkstemp(suffix = suffix, dir = self._tempdir)
         self._tempfiles.append(filename)
         return fd, filename
 
@@ -81,6 +84,8 @@ def escapeShellArg(s):
     for badChar in ' ;&|':
         if badChar in s:
             return "'%s'" % s
+    if not s:
+        return ''
     return s
 
 def tryUpdate():
