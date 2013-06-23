@@ -207,6 +207,7 @@ def mdlDescription(cliModule):
     if parametersSection:
         interface.append(parametersSection)
 
+    scriptFile.append(MDLNewline)
     window = scriptFile.addGroup('Window', 'CLI GUI') \
         .addGroup('Vertical') \
         .addTag(expandY = True)
