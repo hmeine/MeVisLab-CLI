@@ -1,3 +1,7 @@
+"""This module contains classes for convenient creation of
+syntactically valid (and nicely formatted) MDL files.
+"""
+
 import re
 
 def mdlValue(value):
@@ -85,6 +89,10 @@ class MDLFile(list):
         result = MDLGroup(*args)
         self.append(result)
         return result
+
+    def write(self, filename):
+        with file(filename, 'w') as f:
+            f.write(self.mdl())
 
 
 class MDLInclude(object):

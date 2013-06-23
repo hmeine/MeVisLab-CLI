@@ -303,17 +303,14 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
 
     mdefFile, scriptFile, mlabFile, htmlFile = mdlDescription(m)
     if defFile is True:
-        with file(os.path.join(targetDirectory, "%s.def" % m.name), "w") as f:
-            f.write(mdefFile.mdl())
+        mdefFile.write(os.path.join(targetDirectory, "%s.def" % m.name))
     else:
         if defFile: # not empty, add separating newline
             defFile.append(MDLNewline)
         defFile.extend(mdefFile)
 
-    with file(os.path.join(targetDirectory, "%s.script" % m.name), "w") as f:
-        f.write(scriptFile.mdl())
-    with file(os.path.join(targetDirectory, "%s.mlab" % m.name), "w") as f:
-        f.write(mlabFile.mdl())
+    scriptFile.write(os.path.join(targetDirectory, "%s.script" % m.name))
+    mlabFile.write(os.path.join(targetDirectory, "%s.mlab" % m.name))
     if htmlFile is not None:
         if not os.path.exists(os.path.join(targetDirectory, "html")):
             os.mkdir(os.path.join(targetDirectory, "html"))
