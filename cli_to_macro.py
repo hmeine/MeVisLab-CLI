@@ -218,9 +218,19 @@ def mdlDescription(cliModule):
         if parameters.description:
             box.addTag(tooltip = parameters.description)
         for parameter in parameters:
-            if parameter.isExternalType():
-                continue
-            field = box.addGroup('Field', parameter.identifier())
+            if parameter.typ == 'image':
+                continue # already exposed is module input/output
+            elif parameter.typ in ('file', 'directory') or parameter.isExternalType():
+                field = box.addGroup('Field', parameter.identifier())
+                if parameter.channel != 'output':
+                    field.addTag(browseButton = True)
+                    if parameter.typ == 'directory':
+                        field.addTag(browseMode = 'Directory')
+                    if parameter.fileExtensions:
+                        field.addTag(browseFilter = "Supported files (%s);;All files (*)"
+                                     % " ".join('*%s' % ext for ext in parameter.fileExtensions))
+            else:
+                field = box.addGroup('Field', parameter.identifier())
             if parameter.constraints:
                 if parameter.constraints.step is not None:
                     field.addTag(step = parameter.constraints.step)
