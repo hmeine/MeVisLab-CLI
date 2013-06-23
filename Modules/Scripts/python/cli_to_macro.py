@@ -1,3 +1,49 @@
+"""Code for transforming CLI modules' XML descriptions into MeVisLab
+macro modules, currently supporting most parameter types (see below).
+The code makes use of the `cli_modules` module for parsing the XML
+(into Python objects with the relevant attributes, values also parsed
+into Python datatypes), and the (much less complex) `mdl_writer`
+module for creating valid MDL code (.def/.script/.mlab files).
+
+This is how the various parameter types are mapped:
+
+boolean, integer, float, double, string
+  directly converted to their MeVisLab counterparts
+
+file, directory
+  mapped to String fields, with browse button for 'input' channel
+
+integer-vector, float-vector, double-vector
+  mapped to String (via intermediate conversion to numeric vector, converting between comma-separated and space-separated values)
+
+string-vector
+  mapped to String (comma-separated, passed through without change)
+
+integer-enumeration, float-enumeration, double-enumeration, string-enumeration
+  mapped to Enum
+
+point
+  mapped to Vector3
+
+region
+  ???
+
+image
+  mapped to module inputs / outputs
+
+geometry
+  not supported yet, mapped to String fields with filenames
+
+transform
+  not supported yet (linear transforms could be mapped to Matrix fields), mapped to String fields with filenames
+
+table
+  not supported yet (maybe similar to StylePalette), mapped to String fields with filenames
+
+measurement
+  not supported yet (could become curve input/output), mapped to String fields with filenames
+"""
+
 import os, logging, re
 logger = logging.getLogger(__name__)
 
