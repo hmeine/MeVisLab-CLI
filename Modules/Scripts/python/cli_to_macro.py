@@ -2,7 +2,7 @@ import os, logging, re
 logger = logging.getLogger(__name__)
 
 from cli_modules import isCLIExecutable, CLIModule
-from mdl import MDLGroup, MDLNewline, MDLComment, MDLFile, MDLInclude
+from mdl_writer import MDLGroup, MDLNewline, MDLComment, MDLFile, MDLInclude
 
 SIMPLE_TYPE_MAPPING = {
     'boolean'   : 'Bool',
