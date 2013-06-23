@@ -60,7 +60,7 @@ class ArgumentConverter(object):
         if parameter.isExternalType():
             if parameter.channel == 'input' and not self.parameterAvailable(parameter):
                 return None
-            _, filename = self.mkstemp(parameter.defaultExtension()) # TODO: look at fileExtensions
+            _, filename = self.mkstemp(parameter.defaultExtension())
             if parameter.typ == 'image':
                 self._imageFilenames.append((parameter, filename))
             return filename
