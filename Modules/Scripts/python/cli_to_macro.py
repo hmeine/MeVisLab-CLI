@@ -202,7 +202,8 @@ def mdlDescription(cliModule):
                 field.addTag('value', parameter.default)
 
             if parameter.channel == 'output':
-                field.addTag('editable', False)
+                if not parameter.isExternalType():
+                    field.addTag('editable', False)
             else:
                 autoApplyListener.addTag(listenField = parameter.identifier())
 
