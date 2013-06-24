@@ -270,6 +270,8 @@ def mdlDescription(cliModule):
                 continue # already exposed is module input/output
             elif parameter.typ in ('file', 'directory') or parameter.isExternalType():
                 field = box.addGroup('Field', parameter.identifier())
+                if parameter.label:
+                    field.addTag(title = parameter.label)
                 if parameter.channel != 'output':
                     field.addTag(browseButton = True)
                     if parameter.typ == 'directory':
