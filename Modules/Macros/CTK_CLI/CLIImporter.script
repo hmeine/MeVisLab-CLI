@@ -23,7 +23,9 @@ Commands {
 
 Window {
   Vertical {
-    Field importPaths {}
+    Field importPaths {
+      minLength = 50
+    }
     Field targetDirectory {
       browseButton = yes
       browseMode = Directory
