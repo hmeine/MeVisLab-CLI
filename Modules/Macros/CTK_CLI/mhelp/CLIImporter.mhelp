@@ -1,0 +1,78 @@
+ModuleHelp  {
+  MetaInformation  {
+    definition = Modules/Macros/CTK_CLI/CLIImporter.def
+    moduleName = CLIImporter
+    moduleType = MacroModule
+    author = "Hans Meine"
+    dll = ""
+    genre = ""
+    keywords = "CLI module import convert"
+    seeAlso = ""
+    package = Release
+    packageGroup = FMEwork
+  }
+  Purpose  {
+    text = "Imports any number of CTK/Slicer CLI modules and makes them available as macro modules in MeVisLab."
+  }
+  Usage  {
+    text = "*This module starts the import, which only has to be done once, or whenever the CLI module description changed.
+
+Set :field:`importPaths` to a colon-separated list of directories (semicolons are supported as well, to accommodate Windows users) and press the :field:`import` button.  The :field:`targetDirectory` will be created and populated with files; you may change its location e.g. if the default location is not writable (for the user running MeVisLab).
+
+After the initial import, you need to reload the module definitions (i.e. choose "Reload Module Database (Keep Cache)" from the "Extras" menu) and restart MeVisLab.  A number of modules prefixed with "CLI_" should show up in the module search.
+
+**Attention:** There is currently a bug in the itkImageFileReader that may lead to data loss at the output, i.e. floating point data may be read with integer precision.*"
+  }
+  Details  {
+    text = "Technically, *CLI modules* are commandline programs that can describe their arguments in XML when started with the --xml argument.  This XML contains information about the number and type of input and output arguments (optional/mandatory images, scalars, boolean options etc.).  Originally, they were invented for plugging standalone image processing programs into the Slicer GUI, but recently they have been used in other contexts, too, and there has been some effort in formalizing their behavior and use, and the XML schema."
+  }
+  Interaction  {
+    text = ""
+  }
+  Tips  {
+    text = ""
+  }
+  Windows  {
+    text = ""
+    Window _default {
+      title = ""
+      text = ".. screenshot:: _default"
+    }
+  }
+  Parameters  {
+    Field instanceName {
+      type = String
+      text = ""
+      title = ""
+      needsDocumentation = No
+      visibleInGUI = No
+      persistent = Yes
+      default = CLIImporter
+    }
+    Field importPaths {
+      type = String
+      text = "Colon-separated list of directories to scan for CLI executables"
+      title = "Import Paths"
+      visibleInGUI = Yes
+      persistent = Yes
+      default = /home/hmeine/Slicer-4.2.0-2013-06-23-linux-amd64/lib/Slicer-4.2/cli-modules
+    }
+    Field targetDirectory {
+      type = String
+      text = "Path of directory the generated files will be written to.  The directory must be writable and should be located under a MeVisLab package directory for the module definitions to be found properly."
+      title = "Target Directory"
+      visibleInGUI = Yes
+      persistent = Yes
+      default = /home/hmeine/Developer/FMEwork/Release/Modules/Macros/CTK_CLI/generated
+    }
+    Field import {
+      type = Trigger
+      text = "Starts the import"
+      title = Import
+      visibleInGUI = Yes
+      persistent = Yes
+      default = ""
+    }
+    text = ""
+  }
+}
