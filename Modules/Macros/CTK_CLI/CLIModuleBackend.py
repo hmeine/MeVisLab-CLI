@@ -1,5 +1,5 @@
-from cli_modules import CLIModule
-import subprocess, tempfile, os, sys, shutil
+from cli_modules import CLIModule, popenCLIExecutable
+import tempfile, os, sys, shutil
 
 def updateIfAutoApply():
     if ctx.field("autoApply").value:
@@ -133,7 +133,7 @@ def tryUpdate():
 
         stdout, stdoutFilename = arg.mkstemp('.stdout')
         stderr, stderrFilename = arg.mkstemp('.stderr')
-        p = subprocess.Popen(command, stdout = stdout, stderr = stderr)
+        p = popenCLIExecutable(command, stdout = stdout, stderr = stderr)
         ec = p.wait()
         os.close(stdout)
         os.close(stderr)
