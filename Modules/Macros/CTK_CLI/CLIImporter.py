@@ -1,5 +1,10 @@
 import os, re, glob, cli_to_macro
 
+DEFAULT_SEARCH_PATHS = (
+    "/Applications/Slicer.app/Contents/lib/Slicer-*/cli-modules",
+    "~/Slicer*/lib/Slicer-*/cli-modules",
+    )
+
 def doImport():
     importPaths = re.split('[:;]', ctx.field('importPaths').value)
     
@@ -13,6 +18,6 @@ def doImport():
 def init():
     if not ctx.field('importPaths').value:
         found = []
-        for pattern in ("/Applications/Slicer.app/Contents/lib/Slicer-*/cli-modules", ):
-            found.extend(glob.glob(pattern))
+        for pattern in DEFAULT_SEARCH_PATHS:
+            found.extend(glob.glob(os.path.expanduser(pattern)))
         ctx.field('importPaths').value = ':'.join(found)
