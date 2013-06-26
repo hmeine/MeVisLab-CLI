@@ -392,12 +392,16 @@ def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def'):
         elif isCLIExecutable(path):
             executablePaths.append(path)
 
+    successful = 0
+    total = len(executablePaths)
     for i, path in enumerate(executablePaths):
-        yield (i+1, len(executablePaths), path)
+        yield (i, successful, total, path)
         try:
             cliToMacroModule(path, targetDirectory, defFile)
+            successful += 1
         except StandardError, e:
             logger.error(str(e))
+    yield (total, successful, total, "")
 
     with file(os.path.join(targetDirectory, defFileName), "w") as f:
         # the XML files may contain non-ascii characters; don't fail with
