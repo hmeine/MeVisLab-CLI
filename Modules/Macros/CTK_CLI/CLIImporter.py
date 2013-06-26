@@ -15,7 +15,7 @@ def doImport(field = None, window = None):
     if not os.path.exists(targetDirectory):
         os.mkdir(targetDirectory)
 
-    pd = QtGui.QProgressDialog()
+    pd = QtGui.QProgressDialog(window.widget() if window else None)
     pd.setWindowModality(Qt.Qt.WindowModal)
      
     for index, total, path in cli_to_macro.importAllCLIs(importPaths, targetDirectory):
@@ -26,9 +26,11 @@ def doImport(field = None, window = None):
         if pd.wasCanceled:
             break
 
+    pd.setValue(total)
+
     if not pd.wasCanceled:
         QtGui.QMessageBox.information(
-            window.widget() if window else None, "Done",
+            pd, "Done",
             "%s modules successfully imported. "
             "You probably need to reload the module database (via the 'Extras' menu) now."
             % (total, ))
