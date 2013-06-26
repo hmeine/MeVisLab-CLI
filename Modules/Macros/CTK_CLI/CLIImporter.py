@@ -1,4 +1,6 @@
-import os, re, glob, cli_to_macro
+import os, re, glob, logging, cli_to_macro
+
+logging.basicConfig() # no-op if there is already a configuration
 
 DEFAULT_SEARCH_PATHS = (
     "/Applications/Slicer.app/Contents/lib/Slicer-*/cli-modules",
