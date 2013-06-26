@@ -392,10 +392,12 @@ def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def'):
         elif isCLIExecutable(path):
             executablePaths.append(path)
 
-    print executablePaths
     for i, path in enumerate(executablePaths):
         yield (i+1, len(executablePaths), path)
-        cliToMacroModule(path, targetDirectory, defFile)
+        try:
+            cliToMacroModule(path, targetDirectory, defFile)
+        except StandardError, e:
+            logger.error(str(e))
 
     with file(os.path.join(targetDirectory, defFileName), "w") as f:
         f.write(defFile.mdl())
