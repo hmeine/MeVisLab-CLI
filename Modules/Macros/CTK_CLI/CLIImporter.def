@@ -1,7 +1,7 @@
 MacroModule CLIImporter {
   comment = "Imports any number of CTK/Slicer CLI modules and makes them available as macro modules in MeVisLab."
   author = "Hans Meine"
-  keywords = "CLI module import convert"
+  keywords = "Slicer CTK CLI module import convert"
   externalDefinition = $(LOCAL)/CLIImporter.script
   scriptOnly = yes
 }
