@@ -8,7 +8,7 @@ DEFAULT_SEARCH_PATHS = (
     "~/Slicer*/lib/Slicer-*/cli-modules",
     )
 
-def doImport():
+def doImport(field = None, window = None):
     importPaths = re.split('[:;]', ctx.field('importPaths').value)
     
     targetDirectory = ctx.field('targetDirectory').value
@@ -25,6 +25,18 @@ def doImport():
         pd.setLabelText(os.path.basename(path))
         if pd.wasCanceled:
             break
+
+    if not pd.wasCanceled:
+        QtGui.QMessageBox.information(
+            window.widget() if window else None, "Done",
+            "%s modules successfully imported. "
+            "You probably need to reload the module database (via the 'Extras' menu) now."
+            % (total, ))
+        if window:
+            window.close()
+
+def importAndClose():
+    doImport(ctx.window())
 
 def init():
     if not ctx.field('importPaths').value:

@@ -30,10 +30,12 @@ Window {
       browseButton = yes
       browseMode = Directory
     }
-    Horizontal {
-      HSpacer {}
-      Button import {}
-      HSpacer {}
+    ButtonBox {
+      Button {
+        title = "&Import"
+        command = importAndClose
+        role = AcceptRole
+      }
     }
   }
 }

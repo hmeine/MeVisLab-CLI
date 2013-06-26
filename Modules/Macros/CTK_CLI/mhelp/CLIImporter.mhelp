@@ -6,7 +6,7 @@ ModuleHelp  {
     author = "Hans Meine"
     dll = ""
     genre = ""
-    keywords = "CLI module import convert"
+    keywords = "Slicer CTK CLI module import convert"
     seeAlso = ""
     package = Release
     packageGroup = FMEwork
@@ -68,8 +68,8 @@ After the initial import, you need to reload the module definitions (i.e. choose
     Field import {
       type = Trigger
       text = "Starts the import"
-      title = Import
-      visibleInGUI = Yes
+      title = ""
+      visibleInGUI = No
       persistent = Yes
       default = ""
     }
