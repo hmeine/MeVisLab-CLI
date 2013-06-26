@@ -1,4 +1,5 @@
 import os, re, glob, logging, cli_to_macro
+from PythonQt import Qt, QtGui
 
 logging.basicConfig() # no-op if there is already a configuration
 
@@ -13,9 +14,17 @@ def doImport():
     targetDirectory = ctx.field('targetDirectory').value
     if not os.path.exists(targetDirectory):
         os.mkdir(targetDirectory)
-    
+
+    pd = QtGui.QProgressDialog()
+    pd.setWindowModality(Qt.Qt.WindowModal)
+     
     for index, total, path in cli_to_macro.importAllCLIs(importPaths, targetDirectory):
         print "%d/%d importing %s..." % (index, total, path)
+        pd.setValue(index - 1)
+        pd.setMaximum(total)
+        pd.setLabelText(os.path.basename(path))
+        if pd.wasCanceled:
+            break
 
 def init():
     if not ctx.field('importPaths').value:
