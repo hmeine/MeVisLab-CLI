@@ -256,7 +256,7 @@ def mdlDescription(cliModule):
 
     scriptFile.append(MDLNewline)
     window = scriptFile.addGroup('Window', 'CLI GUI') \
-        .addGroup('Vertical') \
+        .addGroup('Category') \
         .addTag(expandY = True)
 
     main = []
