@@ -327,8 +327,8 @@ def mdlDescription(cliModule):
 
     # execution controls
     hori = window.addGroup("Horizontal")
-    hori.addGroup('Field', 'autoApply')
-    hori.addGroup('Field', 'autoUpdate')
+    hori.addGroup('CheckBox', 'autoApply')
+    hori.addGroup('CheckBox', 'autoUpdate')
     hori.addGroup('Button', 'update')
 
     # debug Window section
