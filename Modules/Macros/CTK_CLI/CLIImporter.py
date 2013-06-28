@@ -19,7 +19,8 @@ def doImport(field = None, window = None):
     pd.setWindowModality(Qt.Qt.WindowModal)
      
     for index, successful, total, path in cli_to_macro.importAllCLIs(importPaths, targetDirectory):
-        print "%d/%d importing %s..." % (index+1, total, path)
+        if path:
+            print "%d/%d importing %s..." % (index+1, total, path)
         pd.setValue(index)
         pd.setMaximum(total)
         if path:
