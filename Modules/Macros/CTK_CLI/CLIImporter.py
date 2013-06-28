@@ -47,7 +47,7 @@ def doImport(field = None, window = None):
                     "No CLI modules found in the given directories.")
 
 def importAndClose():
-    doImport(ctx.window())
+    doImport(window = ctx.window())
 
 def init():
     if not ctx.field('importPaths').value:
