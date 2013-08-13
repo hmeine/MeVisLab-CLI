@@ -70,57 +70,71 @@ def countFields(box):
 
 def mdlDescription(cliModule):
     """Given CLIModule instance, return tuple (defFile, scriptFile,
-    mlabFile, htmlFile) containing a MeVisLab macro module definition.
-    The first three items are MDLFile instances that can be converted
-    into strings using their mdl() methods, while htmlFile is actually
-    a string containing an HTML file (that redirects to the module's
-    documentation URL).  If no proper documentation URL is given,
-    htmlFile is None.  The .def file references the .script file in
-    the same directory, and the htmlFile should be placed in a
-    subdirectory named 'html'."""
+    mlabFile, mhelpFile) containing a MeVisLab macro module
+    definition.  The elements are MDLFile instances that can be
+    converted into strings using their mdl() methods.  The .def file
+    references the .script file in the same directory, and the
+    mhelpFile should be placed in a subdirectory named 'mhelp' (as
+    usual)."""
     
     moduleName = "CLI_" + cliModule.name
 
     defFile = MDLFile()
     scriptFile = MDLFile()
     mlabFile = MDLFile()
-    mlabFile.append(MDLComment('MDL v1 utf8'))
-    htmlFile = None
+    mhelpFile = MDLFile()
 
-    # MacroModule definition
+    mlabFile.append(MDLComment('MDL v1 utf8'))
+
+    # MacroModule definition & documentation
     definition = defFile.addGroup("MacroModule", moduleName)
 
+    doc = mhelpFile.addGroup("ModuleHelp")
+    docMeta = doc.addGroup("MetaInformation")
+    docMeta.addTag(moduleName = moduleName)
+    docMeta.addTag(moduleType = 'MacroModule')
+
     comment = cliModule.title
+    docPurpose = cliModule.title
     if cliModule.version:
         comment += " v%s" % cliModule.version
+        docPurpose += " (Version %s)" % cliModule.version
     if cliModule.description:
         comment += " - " + cliModule.description
+        docPurpose += "\n%s\n\n%s\n" % ('-'*len(docPurpose), cliModule.description.rstrip())
+    else:
+        docPurpose += "\n"
+
+    if cliModule.documentation_url:
+        url = cliModule.documentation_url
+        if not url.startswith('http'):
+            logger.warning("%r has a bad documentation url (%r)" % (cliModule.name, url))
+        else:
+            docPurpose += "\nDocumentation location: %s\n" % (url, )
+
+    if cliModule.acknowledgements:
+        docPurpose += "\nAcknowledgements\n----------------\n\n%s\n" % (
+            cliModule.acknowledgements.strip(), )
+        
+    if cliModule.license:
+        docPurpose += "\nLicense\n-------\n\n%s\n" % (
+            cliModule.license.strip(), )
+
     definition.addTag(comment = comment)
 
     if cliModule.contributor:
-        definition.addTag(author = re.sub(r' *\([^)]*\)', '', cliModule.contributor))
+        authors = re.sub(r' *\([^)]*\)', '', cliModule.contributor)
+        definition.addTag(author = authors)
+        docMeta.addTag(author = authors)
 
     if cliModule.category:
-        definition.addTag(keywords = "CLI " + cliModule.category.replace('.', ' '))
+        keywords = "CLI " + cliModule.category.replace('.', ' ')
+        definition.addTag(keywords = keywords)
+        docMeta.addTag(keywords = keywords)
 
     definition.addTag(externalDefinition = "$(LOCAL)/%s.script" % cliModule.name)
 
-    if cliModule.documentation_url:
-        if not cliModule.documentation_url.startswith('http'):
-            logger.warning("%r has a bad documentation url (%r)" % (cliModule.name, cliModule.documentation_url))
-        else:
-            htmlFile = """<html>
-<head>
-<meta http-equiv="refresh" content="1;url=%(url)s">
-<script type="text/javascript">window.location.href = "%(url)s"</script>
-<title>%(name)s documentation</title>
-</head>
-<body>
-<p>You should be automatically redirected to <em>%(name)s</em>'s documentation at <a href="%(url)s">%(url)s</a>.</p>
-</body>
-</html>""" % dict(url = cliModule.documentation_url,
-                  name = cliModule.name)
-            definition.addTag(documentation = "$(LOCAL)/html/%s.html" % cliModule.name)
+    doc.addGroup('Purpose').addTag(text = docPurpose)
 
     # Interface section
     interface = scriptFile.addGroup("Interface")
@@ -343,22 +357,20 @@ def mdlDescription(cliModule):
     scriptFile.append(MDLNewline)
     scriptFile.append(MDLInclude('$(LOCAL)/../DebugWindow.script'))
 
-    return defFile, scriptFile, mlabFile, htmlFile
+    return defFile, scriptFile, mlabFile, mhelpFile
 
 def cliToMacroModule(executablePath, targetDirectory, defFile = True):
-    """Write .script/.mlab files for the CLI module `executablePath`
-    to `targetDirectory`.  If `defFile` is set to an MLDFile instance,
+    """Write .script/.mlab/.mhelp files for the CLI module `executablePath`
+    to `targetDirectory`[/mhelp].  If `defFile` is set to an MLDFile instance,
     the .def file contents are appended to that object, otherwise a
-    .def file for that single module gets written.  (An HTML
-    documentation file may get written to an 'html' subdirectory,
-    too.)"""
+    .def file for that single module gets written."""
     
     logger.info("processing %s..." % executablePath)
     #ET.dump(elementTree)
     m = CLIModule(executablePath)
     m.classifyParameters() # performs additional sanity checks
 
-    mdefFile, scriptFile, mlabFile, htmlFile = mdlDescription(m)
+    mdefFile, scriptFile, mlabFile, mhelpFile = mdlDescription(m)
     if defFile is True:
         mdefFile.write(os.path.join(targetDirectory, "%s.def" % m.name))
     else:
@@ -368,11 +380,7 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
 
     scriptFile.write(os.path.join(targetDirectory, "%s.script" % m.name))
     mlabFile.write(os.path.join(targetDirectory, "%s.mlab" % m.name))
-    if htmlFile is not None:
-        if not os.path.exists(os.path.join(targetDirectory, "html")):
-            os.mkdir(os.path.join(targetDirectory, "html"))
-        with file(os.path.join(targetDirectory, "html", "%s.html" % m.name), "w") as f:
-            f.write(htmlFile)
+    mhelpFile.write(os.path.join(targetDirectory, "mhelp", "CLI_%s.mhelp" % m.name))
 
     return mdefFile
 
@@ -382,10 +390,11 @@ def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def'):
     scanned (non-recursively) or paths of CLI executables.  Before
     importing, the target directory will be wiped.  All module
     definitions will be put into the same .def file, and all generated
-    files will be written to `targetDirectory` (or into an 'html'
-    subdirectory).  See `cliToMacroModule` for more information.  The
-    generator will yield (index, total, path) tuples for progress
-    display (index being 1-based for this purpose)."""
+    files will be written to `targetDirectory` and an 'mhelp'
+    subdirectory, which must both exist already.  See
+    `cliToMacroModule` for more information.  The generator will yield
+    (index, total, path) tuples for progress display (index being
+    1-based for this purpose)."""
 
     defFile = MDLFile()
 
