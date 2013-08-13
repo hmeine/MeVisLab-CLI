@@ -172,6 +172,7 @@ def mdlDescription(cliModule):
                 outputsSection.append(field)
                 field.addTag(internalName = "%s.output0" % parameter.identifier())
                 module = MDLGroup("module", "itkImageFileReader")
+                ioFields.addTag(autoDetermineDataType = True)
                 x, y = xOutput, 0
                 xOutput += 200
             module.addGroup("internal") \
