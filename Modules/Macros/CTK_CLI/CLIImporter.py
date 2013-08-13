@@ -17,6 +17,8 @@ def doImport(field = None, window = None):
             ctx.field('targetDirectory').value))
     if not os.path.exists(targetDirectory):
         os.mkdir(targetDirectory)
+    if not os.path.exists(os.path.join(targetDirectory, "mhelp")):
+        os.mkdir(os.path.join(targetDirectory, "mhelp"))
 
     pd = QtGui.QProgressDialog(window.widget() if window else None)
     pd.setWindowModality(Qt.Qt.WindowModal)
