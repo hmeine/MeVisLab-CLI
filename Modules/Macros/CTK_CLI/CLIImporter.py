@@ -9,9 +9,12 @@ DEFAULT_SEARCH_PATHS = (
     )
 
 def doImport(field = None, window = None):
-    importPaths = re.split('[:;]', ctx.field('importPaths').value)
+    importPaths = [ctx.expandFilename(os.path.expanduser(path))
+                   for path in
+                   re.split('[:;]', ctx.field('importPaths').value)]
     
-    targetDirectory = ctx.field('targetDirectory').value
+    targetDirectory = ctx.expandFilename(os.path.expanduser(
+            ctx.field('targetDirectory').value))
     if not os.path.exists(targetDirectory):
         os.mkdir(targetDirectory)
 
