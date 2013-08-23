@@ -157,7 +157,11 @@ def mdlDescription(cliModule):
             field.addTag(comment = parameter.description)
 
         if parameter.typ == "image":
-            # FIXME: voxel shift? compression?
+            if parameter.channel not in ('input', 'output'):
+                logger.warning("image parameter (%r) has invalid channel (%r), don't know how to handle this!" % (
+                        parameter.identifier(), parameter.channel))
+                continue
+
             ioFields = MDLGroup("fields")
             ioFields.addTag(instanceName = parameter.identifier())
             if parameter.channel == "input":
@@ -168,13 +172,16 @@ def mdlDescription(cliModule):
                 x, y = xInput, 160
                 xInput += 200
                 autoUpdateListener.addTag(listenField = parameter.identifier())
-            elif parameter.channel == "output":
+            else:
+                assert parameter.channel == "output"
                 outputsSection.append(field)
                 field.addTag(internalName = "%s.output0" % parameter.identifier())
                 module = MDLGroup("module", "itkImageFileReader")
                 ioFields.addTag(autoDetermineDataType = True)
                 x, y = xOutput, 0
                 xOutput += 200
+
+            # add reader/writer module to network:
             module.addGroup("internal") \
                 .addTag(frame = "%d %d 120 64" % (x, y))
             ioFields.addTag(correctSubVoxelShift = True)
@@ -220,7 +227,7 @@ def mdlDescription(cliModule):
             field.addTag(hidden = True)
 
     parametersSection.addGroup('Field', 'retainTemporaryFiles') \
-        .addTag(type_ = 'Bool') # no visible effect for parameter fields
+        .addTag(type_ = 'Bool')
 
     parametersSection.addGroup('Field', 'cliExecutablePath') \
         .addTag(type_ = 'String') \
