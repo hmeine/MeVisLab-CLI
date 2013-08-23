@@ -33,6 +33,12 @@ class MDLTag(object):
         self.tagName = name
         self.tagValue = value
 
+    def name(self):
+        return self.tagName
+
+    def value(self):
+        return self.tagValue
+
     def mdl(self, indentation = ""):
         return "%s%s = %s" % (indentation,
                               mdlValue(self.tagName),
@@ -64,6 +70,11 @@ class MDLGroup(list):
         result = MDLTag(*args, **kwargs)
         self.append(result)
         return self
+
+    def tag(self, name):
+        for child in self:
+            if isinstance(child, MDLTag) and child.name() == name:
+                return child
 
 
 class MDLNewline(object):

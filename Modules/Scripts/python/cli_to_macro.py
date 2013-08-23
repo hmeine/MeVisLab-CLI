@@ -105,12 +105,16 @@ def mdlDescription(cliModule):
     else:
         docPurpose += "\n"
 
+    docUsage = """:module:`this` wraps a CLI module, which means that its execution (i.e. pressing :field:`update`) will save temporary files to disk, call the CLI executable behind the scenes, and load the results provided by it.  Compared with native MeVisLab modules, you will get limited feedback during execution, and the additional saving/loading of images introduces an additional cost (depending on the speed of your machine and I/O within the temporary directory).
+
+This documentation is extracted from the CLI module's self-description."""
+        
     if cliModule.documentation_url:
         url = cliModule.documentation_url
         if not url.startswith('http'):
             logger.warning("%r has a bad documentation url (%r)" % (cliModule.name, url))
         else:
-            docPurpose += "\nDocumentation location: %s\n" % (url, )
+            docUsage += " *Additional documentation* is provided at the following URL: %s\n" % (url, )
 
     if cliModule.acknowledgements:
         docPurpose += "\nAcknowledgements\n----------------\n\n%s\n" % (
@@ -134,7 +138,22 @@ def mdlDescription(cliModule):
 
     definition.addTag(externalDefinition = "$(LOCAL)/%s.script" % cliModule.name)
 
+    # mhelp structure (mhelp parser needs a lot of empty groups/tags)
     doc.addGroup('Purpose').addTag(text = docPurpose)
+    doc.addGroup('Usage').addTag(text = docUsage)
+    doc.addGroup('Details').addTag(text = "")
+    doc.addGroup('Interaction').addTag(text = "")
+    doc.addGroup('Tips').addTag(text = "")
+
+    windows = doc.addGroup('Windows').addTag(text = "")
+    for title in ('CLI GUI', 'Execution Debugging'):
+        windows.addGroup('Window', title) \
+          .addTag(title = "") \
+          .addTag(text = ".. screenshot:: %s" % title)
+
+    inputsDoc = doc.addGroup("Inputs")
+    outputsDoc = doc.addGroup("Outputs")
+    parametersDoc = doc.addGroup("Parameters")
 
     # Interface section
     interface = scriptFile.addGroup("Interface")
@@ -166,9 +185,7 @@ def mdlDescription(cliModule):
     xInput = xOutput = 0
     for parameter in cliModule.parameters():
         field = MDLGroup("Field", parameter.identifier())
-
-        if parameter.description:
-            field.addTag(comment = parameter.description)
+        fieldDoc = MDLGroup("Field", parameter.identifier())
 
         if parameter.typ == "image":
             if parameter.channel not in ('input', 'output'):
@@ -180,15 +197,20 @@ def mdlDescription(cliModule):
             ioFields.addTag(instanceName = parameter.identifier())
             if parameter.channel == "input":
                 inputsSection.append(field)
+                inputsDoc.append(fieldDoc)
+
                 field.addTag(internalName = "%s.input0" % parameter.identifier())
                 module = MDLGroup("module", "itkImageFileWriter")
                 ioFields.addTag(forceDirectionCosineWrite = True)
                 x, y = xInput, 160
                 xInput += 200
+
                 autoUpdateListener.addTag(listenField = parameter.identifier())
             else:
                 assert parameter.channel == "output"
                 outputsSection.append(field)
+                outputsDoc.append(fieldDoc)
+
                 field.addTag(internalName = "%s.output0" % parameter.identifier())
                 module = MDLGroup("module", "itkImageFileReader")
                 ioFields.addTag(autoDetermineDataType = True)
@@ -201,6 +223,8 @@ def mdlDescription(cliModule):
             ioFields.addTag(correctSubVoxelShift = True)
             module.append(ioFields)
             mlabFile.append(module)
+
+            fieldDoc.addTag(type_ = 'Image')
         else:
             if parameter.typ in SIMPLE_TYPE_MAPPING:
                 field.addTag(type_ = SIMPLE_TYPE_MAPPING[parameter.typ])
@@ -220,6 +244,8 @@ def mdlDescription(cliModule):
                                 % parameter.typ)
                 field.addTag(type_ = 'String')
 
+            fieldDoc.addTag(type_ = field.tag('type').value())
+
             if parameter.default is not None:
                 field.addTag('value', parameter.default)
 
@@ -230,6 +256,23 @@ def mdlDescription(cliModule):
                 autoApplyListener.addTag(listenField = parameter.identifier())
 
             parametersSection.append(field)
+            parametersDoc.append(fieldDoc)
+
+        fieldDoc.addTag(text = parameter.description or "")
+        if parameter.typ != "image":
+            # copy more parameter properties into the .mhelp file:
+            if parameter.label:
+                fieldDoc.addTag(title = parameter.label)
+            fieldDoc.addTag(visibleInGUI = not parameter.hidden) # FIXME: crude heuristic
+
+            if fieldDoc.tag('type').value() == 'Enum':
+                items = fieldDoc.addGroup("items")
+                for item in parameter.elements:
+                    items.addTag('item', item)
+
+            defaultValue = field.tag('value')
+            if defaultValue is not None:
+                fieldDoc.addTag(default = defaultValue.value())
 
         if parameter.constraints:
             if parameter.constraints.minimum is not None:
@@ -267,6 +310,43 @@ def mdlDescription(cliModule):
         .addTag(type_ = 'Bool')
 
     parametersSection.addGroup('Field', 'update') \
+        .addTag(type_ = 'Trigger')
+
+    parametersDoc.addGroup('Field', 'retainTemporaryFiles') \
+        .addTag(text = 'Do not delete temporary files after CLI execution') \
+        .addTag(type_ = 'Bool')
+
+    parametersDoc.addGroup('Field', 'cliExecutablePath') \
+        .addTag(type_ = 'String') \
+        .addTag(text = 'Path of the CLI executable to run (set by CLIImporter)') \
+        .addTag(title = 'Executable Path') \
+        .addTag(persistent = False)
+
+    parametersDoc.addGroup('Field', 'debugCommandline') \
+        .addTag(text = 'Full commandline used for executing the CLI module.  Actually, this string is composed for debugging; the real execution does not use this exact quoting (but calls a library function that takes arguments within an array).') \
+        .addTag(type_ = 'String') \
+        .addTag(persistent = False)
+
+    parametersDoc.addGroup('Field', 'debugStdOut') \
+        .addTag(text = 'Standard output collected during CLI execution') \
+        .addTag(type_ = 'String') \
+        .addTag(persistent = False)
+
+    parametersDoc.addGroup('Field', 'debugStdErr') \
+        .addTag(text = 'Standard error collected during CLI execution (may be very helpful if the module does not work as expected)') \
+        .addTag(type_ = 'String') \
+        .addTag(persistent = False)
+
+    parametersDoc.addGroup('Field', 'autoUpdate') \
+        .addTag(text = 'Automatically execute CLI module whenever any one of the input images changes (may be slow, use carefully)') \
+        .addTag(type_ = 'Bool')
+
+    parametersDoc.addGroup('Field', 'autoApply') \
+        .addTag(text = 'Automatically execute CLI module whenever any one of the input parameters changes (may be slow, use carefully)') \
+        .addTag(type_ = 'Bool')
+
+    parametersDoc.addGroup('Field', 'update') \
+        .addTag(text = 'Execute the CLI module') \
         .addTag(type_ = 'Trigger')
 
     if inputsSection:
