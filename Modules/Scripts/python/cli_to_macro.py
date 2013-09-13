@@ -138,7 +138,10 @@ This documentation is extracted from the CLI module's self-description."""
     definition.addTag(comment = comment)
 
     if cliModule.contributor:
-        authors = re.sub(r' *\([^)]*\)', '', cliModule.contributor)
+        authors = re.sub(r' *\([^)]*\)|\.', '', cliModule.contributor)
+        authors = ", ".join(
+            author for author in re.split(r' *, *(?:and *)?| +and +', authors)
+            if not author.startswith('http://') or re.search('@| -at- ', author))
         definition.addTag(author = authors)
         docMeta.addTag(author = authors)
 
