@@ -61,6 +61,17 @@ SIMPLE_TYPE_MAPPING = {
     'file'      : 'String',
     }
 
+def fieldName(parameter):
+    """Return field name of MeVisLab macro module that shall be used
+    for the given CLI module parameter.  Usually, this is identical to
+    parameter.identifier(), but for images, we strip of a 'name'
+    postfix if present."""
+    result = parameter.identifier()
+    if parameter.typ == 'image':
+        if result.lower().endswith('name'):
+            result = result[:-4]
+    return result
+
 def countFields(box):
     result = 0
     for el in box:
@@ -185,8 +196,10 @@ This documentation is extracted from the CLI module's self-description."""
     # transform parameters
     xInput = xOutput = 0
     for parameter in cliModule.parameters():
-        field = MDLGroup("Field", parameter.identifier())
-        fieldDoc = MDLGroup("Field", parameter.identifier())
+        parameterFieldName = fieldName(parameter)
+        ioModuleName = parameterFieldName
+        field = MDLGroup("Field", parameterFieldName)
+        fieldDoc = MDLGroup("Field", parameterFieldName)
 
         if parameter.typ == "image":
             if parameter.channel not in ('input', 'output'):
@@ -195,24 +208,24 @@ This documentation is extracted from the CLI module's self-description."""
                 continue
 
             ioFields = MDLGroup("fields")
-            ioFields.addTag(instanceName = parameter.identifier())
+            ioFields.addTag(instanceName = ioModuleName)
             if parameter.channel == "input":
                 inputsSection.append(field)
                 inputsDoc.append(fieldDoc)
 
-                field.addTag(internalName = "%s.input0" % parameter.identifier())
+                field.addTag(internalName = "%s.input0" % ioModuleName)
                 module = MDLGroup("module", "itkImageFileWriter")
                 ioFields.addTag(forceDirectionCosineWrite = True)
                 x, y = xInput, 160
                 xInput += 200
 
-                autoUpdateListener.addTag(listenField = parameter.identifier())
+                autoUpdateListener.addTag(listenField = parameterFieldName)
             else:
                 assert parameter.channel == "output"
                 outputsSection.append(field)
                 outputsDoc.append(fieldDoc)
 
-                field.addTag(internalName = "%s.output0" % parameter.identifier())
+                field.addTag(internalName = "%s.output0" % ioModuleName)
                 module = MDLGroup("module", "itkImageFileReader")
                 ioFields.addTag(autoDetermineDataType = True)
                 x, y = xOutput, 0
@@ -254,7 +267,7 @@ This documentation is extracted from the CLI module's self-description."""
                 if not parameter.isExternalType():
                     field.addTag('editable', False)
             else:
-                autoApplyListener.addTag(listenField = parameter.identifier())
+                autoApplyListener.addTag(listenField = parameterFieldName)
 
             parametersSection.append(field)
             parametersDoc.append(fieldDoc)
@@ -376,10 +389,11 @@ This documentation is extracted from the CLI module's self-description."""
         if parameters.description:
             box.addTag(tooltip = parameters.description)
         for parameter in parameters:
+            parameterFieldName = fieldName(parameter)
             if parameter.typ == 'image':
                 continue # already exposed is module input/output
             elif parameter.typ in ('file', 'directory') or parameter.isExternalType():
-                field = box.addGroup('Field', parameter.identifier())
+                field = box.addGroup('Field', parameterFieldName)
                 if parameter.label:
                     field.addTag(title = parameter.label)
                 if parameter.channel != 'output':
@@ -390,7 +404,7 @@ This documentation is extracted from the CLI module's self-description."""
                         field.addTag(browseFilter = "Supported files (%s);;All files (*)"
                                      % " ".join('*%s' % ext for ext in parameter.fileExtensions))
             else:
-                field = box.addGroup('Field', parameter.identifier())
+                field = box.addGroup('Field', parameterFieldName)
             if parameter.constraints:
                 if parameter.constraints.step is not None:
                     field.addTag(step = parameter.constraints.step)

@@ -1,4 +1,5 @@
 from cli_modules import CLIModule, popenCLIExecutable
+from cli_to_macro import fieldName
 import tempfile, os, sys, shutil
 
 def updateIfAutoApply():
@@ -50,13 +51,13 @@ class ArgumentConverter(object):
                 yield p, fn
 
     def parameterAvailable(self, parameter):
-        field = ctx.field(parameter.identifier())
+        field = ctx.field(fieldName(parameter))
         if parameter.typ == 'image' and field.image():
             return True
         return False
 
     def __call__(self, parameter):
-        field = ctx.field(parameter.identifier())
+        field = ctx.field(fieldName(parameter))
         if parameter.isExternalType():
             if parameter.channel == 'input' and not self.parameterAvailable(parameter):
                 return None
@@ -121,11 +122,11 @@ def tryUpdate():
             value = arg(p)
             if value is None:
                 clear()
-                return "%s: Input image %r is not optional!\n" % (cliModule.name, p.identifier())
+                return "%s: Input image %r is not optional!\n" % (cliModule.name, fieldName(p))
             command.append(value)
 
         for p, filename in arg.inputImageFilenames():
-            ioModule = ctx.module(p.identifier())
+            ioModule = ctx.module(fieldName(p))
             ioModule.field('unresolvedFileName').value = filename
             ioModule.field('save').touch()
 
@@ -152,7 +153,7 @@ def tryUpdate():
                         value = value.strip()
                         ctx.field(key).value = value
             for p, filename in arg.outputImageFilenames():
-                ioModule = ctx.module(p.identifier())
+                ioModule = ctx.module(fieldName(p))
                 ioModule.field('unresolvedFileName').value = filename
         elif ec > 0:
             clear()
