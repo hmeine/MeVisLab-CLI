@@ -313,8 +313,9 @@ This documentation is extracted from the CLI module's self-description."""
         .addTag(type_ = 'Trigger')
 
     parametersDoc.addGroup('Field', 'retainTemporaryFiles') \
+        .addTag(type_ = 'Bool') \
         .addTag(text = 'Do not delete temporary files after CLI execution') \
-        .addTag(type_ = 'Bool')
+        .addTag(title = 'Retain Temporary Files')
 
     parametersDoc.addGroup('Field', 'cliExecutablePath') \
         .addTag(type_ = 'String') \
@@ -323,31 +324,37 @@ This documentation is extracted from the CLI module's self-description."""
         .addTag(persistent = False)
 
     parametersDoc.addGroup('Field', 'debugCommandline') \
-        .addTag(text = 'Full commandline used for executing the CLI module.  Actually, this string is composed for debugging; the real execution does not use this exact quoting (but calls a library function that takes arguments within an array).') \
         .addTag(type_ = 'String') \
+        .addTag(text = 'Full commandline used for executing the CLI module.  Actually, this string is composed for debugging; the real execution does not use this exact quoting (but calls a library function that takes arguments within an array).') \
         .addTag(persistent = False)
 
     parametersDoc.addGroup('Field', 'debugStdOut') \
-        .addTag(text = 'Standard output collected during CLI execution') \
         .addTag(type_ = 'String') \
+        .addTag(text = 'Standard output collected during CLI execution') \
         .addTag(persistent = False)
 
     parametersDoc.addGroup('Field', 'debugStdErr') \
-        .addTag(text = 'Standard error collected during CLI execution (may be very helpful if the module does not work as expected)') \
         .addTag(type_ = 'String') \
+        .addTag(text = 'Standard error collected during CLI execution (may be very helpful if the module does not work as expected)') \
         .addTag(persistent = False)
 
     parametersDoc.addGroup('Field', 'autoUpdate') \
+        .addTag(type_ = 'Bool') \
         .addTag(text = 'Automatically execute CLI module whenever any one of the input images changes (may be slow, use carefully)') \
-        .addTag(type_ = 'Bool')
+        .addTag(title = 'Auto update') \
+        .addTag(visibleInGUI = True)
 
     parametersDoc.addGroup('Field', 'autoApply') \
+        .addTag(type_ = 'Bool') \
         .addTag(text = 'Automatically execute CLI module whenever any one of the input parameters changes (may be slow, use carefully)') \
-        .addTag(type_ = 'Bool')
+        .addTag(title = 'Auto apply') \
+        .addTag(visibleInGUI = True)
 
     parametersDoc.addGroup('Field', 'update') \
+        .addTag(type_ = 'Trigger') \
         .addTag(text = 'Execute the CLI module') \
-        .addTag(type_ = 'Trigger')
+        .addTag(title = 'Update') \
+        .addTag(visibleInGUI = True)
 
     if inputsSection:
         interface.append(inputsSection)
