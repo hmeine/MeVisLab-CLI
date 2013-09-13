@@ -25,9 +25,17 @@ Commands {
 }
 
 Window {
-  Vertical {
-    Field importPaths {
-      minLength = 50
+  Category {
+    expandY = yes
+    Horizontal {
+      margin = 0
+      Field importPaths {
+        minLength = 50
+      }
+      Button {
+        title = "Add..."
+        command = browseForDirectory
+      }
     }
     Field targetDirectory {
       browseButton = yes

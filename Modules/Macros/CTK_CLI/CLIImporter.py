@@ -1,5 +1,6 @@
 import os, re, glob, logging, cli_to_macro
 from PythonQt import Qt, QtGui
+from mevis import MLABFileDialog
 
 logging.basicConfig() # no-op if there is already a configuration
 
@@ -8,10 +9,12 @@ DEFAULT_SEARCH_PATHS = (
     "~/Slicer*/lib/Slicer-*/cli-modules",
     )
 
+def _importPathsAsList():
+    return re.split('[:;]', ctx.field('importPaths').value)
+
 def doImport(field = None, window = None):
     importPaths = [ctx.expandFilename(os.path.expanduser(path))
-                   for path in
-                   re.split('[:;]', ctx.field('importPaths').value)]
+                   for path in _importPathsAsList()]
     
     targetDirectory = ctx.expandFilename(os.path.expanduser(
             ctx.field('targetDirectory').value))
@@ -69,3 +72,11 @@ def init():
         for pattern in DEFAULT_SEARCH_PATHS:
             found.extend(glob.glob(os.path.expanduser(pattern)))
         ctx.field('importPaths').value = ':'.join(found)
+
+def browseForDirectory():
+    dirName = MLABFileDialog.getExistingDirectory(
+        ctx.localPath(), "Select CLI Modules Directory")
+    if dirName:
+        importPaths = _importPathsAsList()
+        importPaths.append(ctx.unexpandFilename(dirName))
+        ctx.field('importPaths').value = ':'.join(importPaths)
