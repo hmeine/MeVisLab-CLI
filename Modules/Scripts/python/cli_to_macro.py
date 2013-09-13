@@ -68,7 +68,7 @@ def countFields(box):
             result += 1
     return result
 
-def mdlDescription(cliModule):
+def mdlDescription(cliModule, includePanelScreenshots = True):
     """Given CLIModule instance, return tuple (defFile, scriptFile,
     mlabFile, mhelpFile) containing a MeVisLab macro module
     definition.  The elements are MDLFile instances that can be
@@ -145,11 +145,12 @@ This documentation is extracted from the CLI module's self-description."""
     doc.addGroup('Interaction').addTag(text = "")
     doc.addGroup('Tips').addTag(text = "")
 
-    windows = doc.addGroup('Windows').addTag(text = "")
-    for title in ('CLI GUI', 'Execution Debugging'):
-        windows.addGroup('Window', title) \
-          .addTag(title = "") \
-          .addTag(text = ".. screenshot:: %s" % title)
+    if includePanelScreenshots:
+        windows = doc.addGroup('Windows').addTag(text = "")
+        for title in ('CLI GUI', ): # 'Execution Debugging'
+            windows.addGroup('Window', title) \
+              .addTag(title = "") \
+              .addTag(text = ".. screenshot:: %s" % title)
 
     inputsDoc = doc.addGroup("Inputs")
     outputsDoc = doc.addGroup("Outputs")
@@ -446,7 +447,8 @@ This documentation is extracted from the CLI module's self-description."""
 
     return defFile, scriptFile, mlabFile, mhelpFile
 
-def cliToMacroModule(executablePath, targetDirectory, defFile = True):
+def cliToMacroModule(executablePath, targetDirectory, defFile = True,
+                     includePanelScreenshots = True):
     """Write .script/.mlab/.mhelp files for the CLI module `executablePath`
     to `targetDirectory`[/mhelp].  If `defFile` is set to an MLDFile instance,
     the .def file contents are appended to that object, otherwise a
@@ -457,7 +459,7 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
     m = CLIModule(executablePath)
     m.classifyParameters() # performs additional sanity checks
 
-    mdefFile, scriptFile, mlabFile, mhelpFile = mdlDescription(m)
+    mdefFile, scriptFile, mlabFile, mhelpFile = mdlDescription(m, includePanelScreenshots)
     if defFile is True:
         mdefFile.write(os.path.join(targetDirectory, "%s.def" % m.name))
     else:
@@ -471,7 +473,8 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True):
 
     return mdefFile
 
-def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def'):
+def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def',
+                  includePanelScreenshots = True):
     """Generator function that imports any number of CLI modules at
     once.  `importPaths` shall contain either directory names to be
     scanned (non-recursively) or paths of CLI executables.  Before
@@ -501,7 +504,8 @@ def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def'):
     for i, path in enumerate(executablePaths):
         yield (i, successful, total, path)
         try:
-            cliToMacroModule(path, targetDirectory, defFile)
+            cliToMacroModule(path, targetDirectory, defFile,
+                             includePanelScreenshots)
             successful += 1
         except StandardError, e:
             logger.error(str(e))

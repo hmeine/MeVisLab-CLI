@@ -20,10 +20,14 @@ def doImport(field = None, window = None):
     if not os.path.exists(os.path.join(targetDirectory, "mhelp")):
         os.mkdir(os.path.join(targetDirectory, "mhelp"))
 
+    generateScreenshots = ctx.field('generatePanelScreenshots').value
+        
     pd = QtGui.QProgressDialog(window.widget() if window else None)
     pd.setWindowModality(Qt.Qt.WindowModal)
      
-    for index, successful, total, path in cli_to_macro.importAllCLIs(importPaths, targetDirectory):
+    for index, successful, total, path in cli_to_macro.importAllCLIs(
+            importPaths, targetDirectory,
+            includePanelScreenshots = generateScreenshots):
         if path:
             print "%d/%d importing %s..." % (index+1, total, path)
         pd.setValue(index)
@@ -35,6 +39,11 @@ def doImport(field = None, window = None):
 
     if not pd.wasCanceled:
         if successful:
+            if generateScreenshots:
+                pd.setLabelText("Generating screenshots...")
+                ctx.field('MLABModuleHelp2Html.directory').value = targetDirectory
+                ctx.field('MLABModuleHelp2Html.createScreenshots').touch()
+
             QtGui.QMessageBox.information(
                 pd, "Done" if (successful == total) else "Done (with errors)",
                 "%s modules successfully imported. "

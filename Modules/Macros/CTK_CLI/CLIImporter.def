@@ -3,5 +3,4 @@ MacroModule CLIImporter {
   author = "Hans Meine"
   keywords = "Slicer CTK CLI module import convert"
   externalDefinition = $(LOCAL)/CLIImporter.script
-  scriptOnly = yes
 }

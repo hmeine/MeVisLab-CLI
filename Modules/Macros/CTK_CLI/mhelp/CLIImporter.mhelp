@@ -65,6 +65,16 @@ After the initial import, you need to reload the module definitions (i.e. choose
       persistent = Yes
       default = /home/hmeine/Developer/FMEwork/Release/Modules/Macros/CTK_CLI/generated
     }
+    Field generatePanelScreenshots {
+      type = Bool
+      text = "If checked, the generated module help contains a Windows section with a screenshot of the default module panel.
+
+The screenshots are generated at the end of the import process, which will cause actual panel windows to appear very briefly, so this leads to some flickering.  (Which is the only reason why the screenshots are optional.)"
+      title = "Generate Panel Screenshots"
+      visibleInGUI = Yes
+      persistent = Yes
+      default = FALSE
+    }
     Field import {
       type = Trigger
       text = "Starts the import"

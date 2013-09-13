@@ -7,6 +7,9 @@ Interface {
       type = String
       value = $(LOCAL)/generated
     }
+    Field generatePanelScreenshots {
+      type = Bool
+    }
     Field import {
       type = Trigger
     }
@@ -30,6 +33,7 @@ Window {
       browseButton = yes
       browseMode = Directory
     }
+    CheckBox generatePanelScreenshots { }
     ButtonBox {
       Button {
         title = "&Import"
