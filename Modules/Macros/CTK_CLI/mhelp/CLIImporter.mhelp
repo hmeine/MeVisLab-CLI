@@ -21,7 +21,7 @@ Set :field:`importPaths` to a colon-separated list of directories (semicolons ar
 
 After the initial import, you need to reload the module definitions (i.e. choose "Reload Module Database (Keep Cache)" from the "Extras" menu) and restart MeVisLab.  A number of modules prefixed with "CLI_" should show up in the module search.
 
-**Attention:** There is currently a bug in the itkImageFileReader that may lead to data loss at the output, i.e. floating point data may be read with integer precision.*"
+**Caveat:** Support for VTK transforms is rather limited, to say the least.*"
   }
   Details  {
     text = "Technically, *CLI modules* are commandline programs that can describe their arguments in XML when started with the --xml argument.  This XML contains information about the number and type of input and output arguments (optional/mandatory images, scalars, boolean options etc.).  Originally, they were invented for plugging standalone image processing programs into the Slicer GUI, but recently they have been used in other contexts, too, and there has been some effort in formalizing their behavior and use, and the XML schema."
