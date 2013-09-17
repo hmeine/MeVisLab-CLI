@@ -6,7 +6,7 @@ def _removePaths(pathString, pathsToBeRemoved):
     for p in pathsToBeRemoved:
         if p in paths:
             paths.remove(p)
-    return os.pathsep.join(paths)
+    return paths
 
 _cached = None
 
@@ -31,8 +31,15 @@ def mlabFreeEnvironment():
                            'DYLD_LIBRARY_PATH',
                            'DYLD_FRAMEWORK_PATH'):
             if libPathVar in _cached:
-                _cached[libPathVar] = _removePaths(_cached[libPathVar],
-                                                   MLABPackageManager.getLibPaths())
+                rest = _removePaths(_cached[libPathVar],
+                                    MLABPackageManager.getLibPaths())
+                # DYLD_FRAMEWORK_PATH also contains MeVisLab.app/Contents/Frameworks:
+                rest = [p for p in rest if 'MeVisLab.app' not in p]
+                if rest:
+                    _cached[libPathVar] = os.pathsep.join(rest)
+                else:
+                    del _cached[libPathVar]
+                
         if 'PATH' in _cached:
             _cached['PATH'] = _removePaths(_cached['PATH'],
                                            MLABPackageManager.getBinPaths())
