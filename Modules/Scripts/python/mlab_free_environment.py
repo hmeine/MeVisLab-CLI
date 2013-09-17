@@ -41,7 +41,8 @@ def mlabFreeEnvironment():
                     del _cached[libPathVar]
                 
         if 'PATH' in _cached:
-            _cached['PATH'] = _removePaths(_cached['PATH'],
-                                           MLABPackageManager.getBinPaths())
+            _cached['PATH'] = os.pathsep.join(
+                _removePaths(_cached['PATH'],
+                             MLABPackageManager.getBinPaths()))
         
     return _cached
