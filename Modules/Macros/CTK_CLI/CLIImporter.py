@@ -2,6 +2,8 @@ import os, re, glob, logging, cli_to_macro
 from PythonQt import Qt, QtGui
 from mevis import MLABFileDialog
 
+from mlab_free_environment import mlabFreeEnvironment
+
 logging.basicConfig() # no-op if there is already a configuration
 
 DEFAULT_SEARCH_PATHS = (
@@ -30,7 +32,8 @@ def doImport(field = None, window = None):
      
     for index, successful, total, path in cli_to_macro.importAllCLIs(
             importPaths, targetDirectory,
-            includePanelScreenshots = generateScreenshots):
+            includePanelScreenshots = generateScreenshots,
+            env = mlabFreeEnvironment()):
         if path:
             print "%d/%d importing %s..." % (index+1, total, path)
         pd.setValue(index)

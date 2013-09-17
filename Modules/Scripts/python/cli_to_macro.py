@@ -465,7 +465,7 @@ This documentation is extracted from the CLI module's self-description."""
     return defFile, scriptFile, mlabFile, mhelpFile
 
 def cliToMacroModule(executablePath, targetDirectory, defFile = True,
-                     includePanelScreenshots = True):
+                     includePanelScreenshots = True, env = None):
     """Write .script/.mlab/.mhelp files for the CLI module `executablePath`
     to `targetDirectory`[/mhelp].  If `defFile` is set to an MLDFile instance,
     the .def file contents are appended to that object, otherwise a
@@ -473,7 +473,7 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True,
     
     logger.info("processing %s..." % executablePath)
     #ET.dump(elementTree)
-    m = CLIModule(executablePath)
+    m = CLIModule(executablePath, env = env)
     m.classifyParameters() # performs additional sanity checks
 
     mdefFile, scriptFile, mlabFile, mhelpFile = mdlDescription(m, includePanelScreenshots)
@@ -491,7 +491,7 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True,
     return mdefFile
 
 def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def',
-                  includePanelScreenshots = True):
+                  includePanelScreenshots = True, env = None):
     """Generator function that imports any number of CLI modules at
     once.  `importPaths` shall contain either directory names to be
     scanned (non-recursively) or paths of CLI executables.  Before
@@ -522,7 +522,7 @@ def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def',
         yield (i, successful, total, path)
         try:
             cliToMacroModule(path, targetDirectory, defFile,
-                             includePanelScreenshots)
+                             includePanelScreenshots, env = env)
             successful += 1
         except StandardError, e:
             logger.error(str(e))

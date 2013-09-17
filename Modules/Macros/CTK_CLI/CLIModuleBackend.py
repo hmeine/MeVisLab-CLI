@@ -1,5 +1,6 @@
 from cli_modules import CLIModule, popenCLIExecutable
 from cli_to_macro import fieldName
+from mlab_free_environment import mlabFreeEnvironment
 import tempfile, os, sys, shutil
 
 def updateIfAutoApply():
@@ -134,7 +135,8 @@ def tryUpdate():
 
         stdout, stdoutFilename = arg.mkstemp('.stdout')
         stderr, stderrFilename = arg.mkstemp('.stderr')
-        p = popenCLIExecutable(command, stdout = stdout, stderr = stderr)
+        p = popenCLIExecutable(command, stdout = stdout, stderr = stderr,
+                               env = mlabFreeEnvironment())
         ec = p.wait()
         os.close(stdout)
         os.close(stderr)
