@@ -1,0 +1,28 @@
+// MDL v1 utf8
+network  {
+  watchlist = ""
+}
+module MLABModuleHelp2Html {
+  internal  {
+    frame = "493 413 184 56"
+    moduleGroupName = ""
+    windows  {
+      window _default {
+        geometry = "776 467 327 101"
+        sizeHint = "327 101"
+        wasOpen = no
+      }
+      window _automatic {
+        geometry = "711 322 500 600"
+        sizeHint = "256 192"
+        wasOpen = no
+      }
+    }
+  }
+  fields  {
+    instanceName = MLABModuleHelp2Html
+    directory = ""
+  }
+}
+connections = ""
+networkModel = ""
