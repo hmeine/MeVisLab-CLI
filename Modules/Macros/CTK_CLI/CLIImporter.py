@@ -12,7 +12,7 @@ DEFAULT_SEARCH_PATHS = (
     )
 
 def _importPathsAsList():
-    return re.split('[:;]', ctx.field('importPaths').value)
+    return ctx.field('importPaths').value.split(os.pathsep)
 
 def doImport(field = None, window = None):
     importPaths = [ctx.expandFilename(os.path.expanduser(path))
