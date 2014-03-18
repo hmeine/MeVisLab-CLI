@@ -19,7 +19,7 @@ ModuleHelp  {
 
 Set :field:`importPaths` to a colon-separated list of directories (semicolons are supported as well, to accommodate Windows users) and press the :field:`import` button.  The :field:`targetDirectory` will be created and populated with files; you may change its location e.g. if the default location is not writable (for the user running MeVisLab).
 
-After the initial import, you need to reload the module definitions (i.e. choose "Reload Module Database (Keep Cache)" from the "Extras" menu) and restart MeVisLab.  A number of modules prefixed with "CLI_" should show up in the module search.
+After the initial import, you need to reload the module definitions (i.e. choose "Reload Module Database (Keep Cache)" from the "Extras" menu) and restart MeVisLab.  A number of modules prefixed with "CLI\\_" should show up in the module search.
 
 **Caveat:** Support for VTK transforms is rather limited, to say the least.*"
   }
