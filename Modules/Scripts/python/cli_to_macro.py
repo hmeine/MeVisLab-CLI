@@ -190,11 +190,8 @@ This documentation is extracted from the CLI module's self-description."""
     commands.addGroup('FieldListener', 'update') \
         .addTag(command = 'update')
 
-    autoApplyListener = commands.addGroup('FieldListener', 'autoApply') \
-        .addTag(command = 'updateIfAutoApply')
-
-    autoUpdateListener = commands.addGroup('FieldListener', 'autoUpdate') \
-        .addTag(command = 'updateIfAutoUpdate')
+    autoApplyListener = commands.addGroup('FieldListener', 'autoApply')
+    autoUpdateListener = commands.addGroup('FieldListener', 'autoUpdate')
 
     # transform parameters
     xInput = xOutput = 0
@@ -300,6 +297,16 @@ This documentation is extracted from the CLI module's self-description."""
         if parameter.hidden:
             field.addTag(hidden = True)
 
+    if not autoApplyListener:
+        commands.remove(autoApplyListener)
+    else:
+        autoApplyListener.addTag(command = 'updateIfAutoApply')
+
+    if not autoUpdateListener:
+        commands.remove(autoUpdateListener)
+    else:        
+        autoUpdateListener.addTag(command = 'updateIfAutoUpdate')
+            
     parametersSection.addGroup('Field', 'retainTemporaryFiles') \
         .addTag(type_ = 'Bool')
 
@@ -320,11 +327,13 @@ This documentation is extracted from the CLI module's self-description."""
         .addTag(type_ = 'String') \
         .addTag(editable = False)
 
-    parametersSection.addGroup('Field', 'autoUpdate') \
-        .addTag(type_ = 'Bool')
+    if autoUpdateListener:
+        parametersSection.addGroup('Field', 'autoUpdate') \
+            .addTag(type_ = 'Bool')
 
-    parametersSection.addGroup('Field', 'autoApply') \
-        .addTag(type_ = 'Bool')
+    if autoApplyListener:
+        parametersSection.addGroup('Field', 'autoApply') \
+            .addTag(type_ = 'Bool')
 
     parametersSection.addGroup('Field', 'update') \
         .addTag(type_ = 'Trigger')
@@ -355,17 +364,19 @@ This documentation is extracted from the CLI module's self-description."""
         .addTag(text = 'Standard error collected during CLI execution (may be very helpful if the module does not work as expected)') \
         .addTag(persistent = False)
 
-    parametersDoc.addGroup('Field', 'autoUpdate') \
-        .addTag(type_ = 'Bool') \
-        .addTag(text = 'Automatically execute CLI module whenever any one of the input images changes (may be slow, use carefully)') \
-        .addTag(title = 'Auto update') \
-        .addTag(visibleInGUI = True)
+    if autoUpdateListener:
+        parametersDoc.addGroup('Field', 'autoUpdate') \
+            .addTag(type_ = 'Bool') \
+            .addTag(text = 'Automatically execute CLI module whenever any one of the input images changes (may be slow, use carefully)') \
+            .addTag(title = 'Auto update') \
+            .addTag(visibleInGUI = True)
 
-    parametersDoc.addGroup('Field', 'autoApply') \
-        .addTag(type_ = 'Bool') \
-        .addTag(text = 'Automatically execute CLI module whenever any one of the input parameters changes (may be slow, use carefully)') \
-        .addTag(title = 'Auto apply') \
-        .addTag(visibleInGUI = True)
+    if autoApplyListener:
+        parametersDoc.addGroup('Field', 'autoApply') \
+            .addTag(type_ = 'Bool') \
+            .addTag(text = 'Automatically execute CLI module whenever any one of the input parameters changes (may be slow, use carefully)') \
+            .addTag(title = 'Auto apply') \
+            .addTag(visibleInGUI = True)
 
     parametersDoc.addGroup('Field', 'update') \
         .addTag(type_ = 'Trigger') \
@@ -399,13 +410,16 @@ This documentation is extracted from the CLI module's self-description."""
                 field = box.addGroup('Field', parameterFieldName)
                 if parameter.label:
                     field.addTag(title = parameter.label)
-                if parameter.channel != 'output':
-                    field.addTag(browseButton = True)
-                    if parameter.typ == 'directory':
-                        field.addTag(browseMode = 'Directory')
-                    if parameter.fileExtensions:
-                        field.addTag(browseFilter = "Supported files (%s);;All files (*)"
-                                     % " ".join('*%s' % ext for ext in parameter.fileExtensions))
+                field.addTag(browseButton = True)
+                if parameter.typ == 'directory':
+                    field.addTag(browseMode = 'Directory')
+                elif parameter.channel == 'output':
+                    field.addTag(browseMode = 'Save')
+                else:
+                    field.addTag(browseMode = 'Open') # default, but be explicit
+                if parameter.fileExtensions:
+                    field.addTag(browseFilter = "Supported files (%s);;All files (*)"
+                                 % " ".join('*%s' % ext for ext in parameter.fileExtensions))
             else:
                 field = box.addGroup('Field', parameterFieldName)
             if parameter.constraints:
@@ -454,8 +468,10 @@ This documentation is extracted from the CLI module's self-description."""
 
     # execution controls
     hori = window.addGroup("Horizontal")
-    hori.addGroup('CheckBox', 'autoApply')
-    hori.addGroup('CheckBox', 'autoUpdate')
+    if autoApplyListener:
+        hori.addGroup('CheckBox', 'autoApply')
+    if autoUpdateListener:
+        hori.addGroup('CheckBox', 'autoUpdate')
     hori.addGroup('Button', 'update')
 
     # debug Window section
