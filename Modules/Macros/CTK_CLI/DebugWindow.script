@@ -1,4 +1,7 @@
 Window "Execution Debugging" {
+  preferredWidth = 1100
+  preferredHeight = 600
+  
   Vertical {
     expandY = yes
     Field cliExecutablePath {
