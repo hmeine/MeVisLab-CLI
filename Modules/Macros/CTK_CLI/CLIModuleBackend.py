@@ -78,6 +78,8 @@ class ArgumentConverter(object):
                     return True # just set the flag, don't pass an arg
                 else:
                     return None # option not set -> no flag must be passed
+            elif (parameter.typ == 'file' and not field.value):
+                return None # don't pass empty filenames
             else:
                 return str(field.value)
 
@@ -91,7 +93,9 @@ def escapeShellArg(s):
     return s
 
 def tryUpdate():
-    """Execute the CLI module, but don't warn about missing inputs (used for autoUpdate)"""
+    """Execute the CLI module, but don't warn about missing inputs (used
+    for autoUpdate).  Returns error messages that can be displayed if
+    explicitly run (cf. update())."""
 
     command = [cliModule.path]
     arguments, options, outputs = cliModule.classifyParameters()
