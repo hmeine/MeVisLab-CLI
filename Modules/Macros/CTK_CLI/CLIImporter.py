@@ -8,7 +8,11 @@ logging.basicConfig() # no-op if there is already a configuration
 
 DEFAULT_SEARCH_PATHS = (
     "/Applications/Slicer.app/Contents/lib/Slicer-*/cli-modules",
+    "/Applications/Slicer.app/Contents/Extensions-*/*/lib/Slicer-*/cli-modules",
     "~/Slicer*/lib/Slicer-*/cli-modules",
+    "~/.config/NA-MIC/Extensions-*/*/lib/Slicer-*/cli-modules",
+    r"C:\Program*\Slicer*\lib\Slicer-*\cli-modules",
+    r"C:\Program*\Slicer*\Extensions-*\*\lib\Slicer-*\cli-modules",
     )
 
 def _importPathsAsList():
