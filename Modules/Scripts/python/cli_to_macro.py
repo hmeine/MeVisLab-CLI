@@ -47,7 +47,7 @@ measurement
 import os, logging, re
 logger = logging.getLogger(__name__)
 
-from cli_modules import isCLIExecutable, CLIModule
+from cli_modules import isCLIExecutable, listCLIExecutables, CLIModule
 from mdl_writer import MDLGroup, MDLNewline, MDLComment, MDLFile, MDLInclude
 
 SIMPLE_TYPE_MAPPING = {
@@ -509,10 +509,7 @@ def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def',
 
     for path in importPaths:
         if os.path.isdir(path):
-            for entry in sorted(os.listdir(path)):
-                entry = os.path.join(path, entry)
-                if isCLIExecutable(entry):
-                    executablePaths.append(entry)
+            executablePaths.extend(listCLIExecutables(path))
         elif isCLIExecutable(path):
             executablePaths.append(path)
 
