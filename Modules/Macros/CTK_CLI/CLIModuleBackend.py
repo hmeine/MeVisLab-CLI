@@ -22,9 +22,7 @@ class ArgumentConverter(object):
 
     def __init__(self):
         self._imageFilenames = []
-        self.hasOutputParameters = False
         self._tempdir = None
-        self._tempfiles = []
     
     def __enter__(self):
         return self
@@ -38,7 +36,6 @@ class ArgumentConverter(object):
         if self._tempdir is None:
             self._tempdir = tempfile.mkdtemp() # TODO: prefix = modulename?
         fd, filename = tempfile.mkstemp(suffix = suffix, dir = self._tempdir)
-        self._tempfiles.append(filename)
         return fd, filename
 
     def inputImageFilenames(self):
@@ -68,7 +65,6 @@ class ArgumentConverter(object):
             return filename
         else:
             if parameter.channel == 'output':
-                self.hasOutputParameters = True
                 if parameter.default is None:
                     return None # nothing to be passed into the CLI module
             if parameter.isNumericVector():
