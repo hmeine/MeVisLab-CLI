@@ -9,7 +9,8 @@ def updateIfAutoApply():
     else:
         clear()
 
-def updateIfAutoUpdate():
+def updateIfAutoUpdate(field):
+    arg.cleanupTemporaryFile(field.getName())
     if ctx.field("autoUpdate").value:
         tryUpdate()
     else:
@@ -76,9 +77,11 @@ class ArgumentConverter(object):
         if parameter.isExternalType():
             if parameter.channel == 'input' and not self.parameterAvailable(parameter):
                 return None
-            _, filename = self.mkstemp(parameter.defaultExtension())
-            if parameter.typ == 'image':
-                self._imageFilenames.append((parameter, filename))
+            filename = self._imageFilenames.get(parameter)
+            if filename is None:
+                _, filename = self.mkstemp(parameter.defaultExtension())
+                if parameter.typ == 'image':
+                    self._imageFilenames[parameter] = filename
             return filename
         else:
             if parameter.channel == 'output':
@@ -150,6 +153,8 @@ def tryUpdate():
             command.append(value)
 
         for p, filename in arg.inputImageFilenames():
+            if os.path.exists(filename) and os.path.getsize(filename):
+                continue
             ioModule = ctx.module(fieldName(p))
             ioModule.field('unresolvedFileName').value = filename
             ioModule.field('save').touch()
