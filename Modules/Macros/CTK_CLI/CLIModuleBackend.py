@@ -84,10 +84,14 @@ class ArgumentConverter(object):
                 return str(field.value)
 
 def escapeShellArg(s):
-    """Bad approximation, preventing stupid mistakes, but also unconditional quoting."""
-    for badChar in ' ;&|':
+    """Bad approximation, preventing stupid mistakes, but also
+    unconditional quoting.  (This is only used for *display* of the
+    command executed for copy-pasting, so no strict security is
+    required.)
+    """
+    for badChar in ' ;&|"\'':
         if badChar in s:
-            return "'%s'" % s
+            return "'%s'" % s.replace("'", "'\"'\"'")
     if not s:
         return ''
     return s
