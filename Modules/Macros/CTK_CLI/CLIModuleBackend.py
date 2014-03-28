@@ -17,20 +17,37 @@ def updateIfAutoUpdate():
 
 class ArgumentConverter(object):
     """Takes field values from ctx and formats the arguments for being
-    passed to CLI modules; implemented as a context manager for
-    cleaning up the temporary files."""
+    passed to CLI modules; manages list of temporary files in order to
+    be able to clean up afterwards.
+    """
 
     def __init__(self):
-        self._imageFilenames = []
         self._tempdir = None
+        self._imageFilenames = {}
     
-    def __enter__(self):
-        return self
+    def cleanupTemporaryFiles(self):
+        """Completely removes all temporary files."""
+        if self._tempdir is not None:
+            shutil.rmtree(self._tempdir)
+            self._tempdir = None
+        self._imageFilenames = {}
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if not ctx.field('retainTemporaryFiles').value:
-            if self._tempdir is not None:
-                shutil.rmtree(self._tempdir)
+    def cleanupTemporaryFile(self, touchedFieldName):
+        """Remove a single temporary file for an image which was
+        touch()ed and thus cannot be reused.  Does nothing (in
+        particular, throws no error) if no entry for that field name
+        is found.
+        """
+        for p, fn in self._imageFilenames.items():
+            if fieldName(p) == touchedFieldName:
+                if os.path.exists(fn):
+                    os.unlink(fn)
+                # we need to correctly keep track of _imageFilenames,
+                # since inputImageFilenames() and
+                # outputImageFilenames() must not return old
+                # filenames:
+                del self._imageFilenames[p]
+                return
 
     def mkstemp(self, suffix):
         if self._tempdir is None:
@@ -39,12 +56,12 @@ class ArgumentConverter(object):
         return fd, filename
 
     def inputImageFilenames(self):
-        for p, fn in self._imageFilenames:
+        for p, fn in self._imageFilenames.iteritems():
             if p.channel == 'input':
                 yield p, fn
 
     def outputImageFilenames(self):
-        for p, fn in self._imageFilenames:
+        for p, fn in self._imageFilenames.iteritems():
             if p.channel == 'output':
                 yield p, fn
 
@@ -92,6 +109,8 @@ def escapeShellArg(s):
         return ''
     return s
 
+arg = ArgumentConverter()
+
 def tryUpdate():
     """Execute the CLI module, but don't warn about missing inputs (used
     for autoUpdate).  Returns error messages that can be displayed if
@@ -102,7 +121,7 @@ def tryUpdate():
 
     returnParameterFilename = None
 
-    with ArgumentConverter() as arg:
+    if True:
         for p in options:
             value = arg(p)
             if value is None: # missing optional arg / output arg (without default) / false bool
@@ -178,6 +197,7 @@ def clear():
     """Close all itkImageFileReaders such as to make the output image states invalid"""
     for o in ctx.outputs():
         ctx.module(o).field("close").touch()
+        arg.cleanupTemporaryFile(o)
 
 def checkCLI():
     global cliModule

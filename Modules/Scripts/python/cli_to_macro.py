@@ -187,6 +187,7 @@ This documentation is extracted from the CLI module's self-description."""
     commands.append(MDLNewline)
 
     commands.addTag(initCommand = 'checkCLI')
+    commands.addTag(finalizeCommand = 'arg.cleanupTemporaryFiles')
     commands.append(MDLNewline)
 
     commands.addGroup('FieldListener', 'update') \
