@@ -64,10 +64,12 @@ SIMPLE_TYPE_MAPPING = {
 def fieldName(parameter):
     """Return field name of MeVisLab macro module that shall be used
     for the given CLI module parameter.  Usually, this is identical to
-    parameter.identifier(), but for images, we strip of a 'name'
-    postfix if present."""
+    parameter.identifier(), but for images, we strip off postfixes like
+    'name' or 'filename' if present."""
     result = parameter.identifier()
     if parameter.typ == 'image':
+        if result.lower().endswith('filename'):
+            result = result[:-8]
         if result.lower().endswith('name'):
             result = result[:-4]
     return result
