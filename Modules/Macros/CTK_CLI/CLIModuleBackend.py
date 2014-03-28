@@ -114,6 +114,10 @@ def escapeShellArg(s):
 
 arg = ArgumentConverter()
 
+def cleanupTemporaryFiles(self):
+    if not ctx.field('retainTemporaryFiles').value:
+        arg.cleanupTemporaryFiles()
+        
 def tryUpdate():
     """Execute the CLI module, but don't warn about missing inputs (used
     for autoUpdate).  Returns error messages that can be displayed if
