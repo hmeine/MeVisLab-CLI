@@ -1,3 +1,4 @@
+# **InsertLicense** code
 import os, re, glob, logging, cli_to_macro
 from PythonQt import Qt, QtGui
 from mevis import MLABFileDialog

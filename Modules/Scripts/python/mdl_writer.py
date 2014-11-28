@@ -1,3 +1,4 @@
+# **InsertLicense** code
 """This module contains classes for convenient creation of
 syntactically valid (and nicely formatted) MDL files.
 """

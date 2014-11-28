@@ -1,3 +1,4 @@
+# **InsertLicense** code
 """Code for transforming CLI modules' XML descriptions into MeVisLab
 macro modules, currently supporting most parameter types (see below).
 The code makes use of the `cli_modules` module for parsing the XML
