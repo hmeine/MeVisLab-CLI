@@ -1,7 +1,7 @@
 # **InsertLicense** code
 """Code for transforming CLI modules' XML descriptions into MeVisLab
 macro modules, currently supporting most parameter types (see below).
-The code makes use of the `cli_modules` module for parsing the XML
+The code makes use of the `ctk_cli` package for parsing the XML
 (into Python objects with the relevant attributes, values also parsed
 into Python datatypes), and the (much less complex) `mdl_writer`
 module for creating valid MDL code (.def/.script/.mlab files).
@@ -48,7 +48,7 @@ measurement
 import os, logging, re
 logger = logging.getLogger(__name__)
 
-from cli_modules import isCLIExecutable, listCLIExecutables, CLIModule
+from ctk_cli import isCLIExecutable, listCLIExecutables, CLIModule
 from mdl_writer import MDLGroup, MDLNewline, MDLComment, MDLFile, MDLInclude
 
 SIMPLE_TYPE_MAPPING = {

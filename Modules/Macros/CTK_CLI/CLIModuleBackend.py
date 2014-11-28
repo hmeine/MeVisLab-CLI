@@ -1,5 +1,5 @@
-from cli_modules import CLIModule, popenCLIExecutable
 # **InsertLicense** code
+from ctk_cli import CLIModule, popenCLIExecutable
 from cli_to_macro import fieldName
 from mlab_free_environment import mlabFreeEnvironment
 import tempfile, os, sys, shutil
