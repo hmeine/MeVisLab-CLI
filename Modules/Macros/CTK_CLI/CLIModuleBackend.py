@@ -118,7 +118,7 @@ def escapeShellArg(s):
 
 arg = ArgumentConverter()
 
-def cleanupTemporaryFiles(self):
+def cleanupTemporaryFiles():
     if not ctx.field('retainTemporaryFiles').value:
         arg.cleanupTemporaryFiles()
         
