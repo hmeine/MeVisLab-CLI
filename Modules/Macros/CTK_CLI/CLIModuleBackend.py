@@ -75,14 +75,17 @@ class ArgumentConverter(object):
 
     def __call__(self, parameter):
         field = ctx.field(fieldName(parameter))
-        if parameter.isExternalType():
+        # TODO: do the following for all outputs that shall be automatically
+        # saved and loaded (but not for all external types, i.e. not if the field
+        # is a string filename field that is set by the user):
+        if parameter.typ == 'image':
+            # generate filenames
             if parameter.channel == 'input' and not self.parameterAvailable(parameter):
-                return None
+                return None # (optional) input image not given
             filename = self._imageFilenames.get(parameter)
             if filename is None:
                 _, filename = self.mkstemp(parameter.defaultExtension())
-                if parameter.typ == 'image':
-                    self._imageFilenames[parameter] = filename
+                self._imageFilenames[parameter] = filename
             return filename
         else:
             if parameter.channel == 'output':
