@@ -84,7 +84,8 @@ class ArgumentConverter(object):
                 return None # (optional) input image not given
             filename = self._imageFilenames.get(parameter)
             if filename is None:
-                _, filename = self.mkstemp(parameter.defaultExtension())
+                fd, filename = self.mkstemp(parameter.defaultExtension())
+                os.close(fd)
                 self._imageFilenames[parameter] = filename
             return filename
         else:
@@ -98,7 +99,7 @@ class ArgumentConverter(object):
                     return True # just set the flag, don't pass an arg
                 else:
                     return None # option not set -> no flag must be passed
-            elif (parameter.typ == 'file' and not field.value):
+            elif parameter.typ == 'file' and not field.value:
                 return None # don't pass empty filenames
             else:
                 return str(field.value)
@@ -150,7 +151,8 @@ def tryUpdate():
 
         if outputs:
             command.append('--returnparameterfile')
-            _, returnParameterFilename = arg.mkstemp('.params')
+            fd, returnParameterFilename = arg.mkstemp('.params')
+            os.close(fd)
             command.append(returnParameterFilename)
 
         for p in arguments:
