@@ -113,7 +113,7 @@ def escapeShellArg(s):
         if badChar in s:
             return "'%s'" % s.replace("'", "'\"'\"'")
     if not s:
-        return ''
+        return "''"
     return s
 
 arg = ArgumentConverter()
