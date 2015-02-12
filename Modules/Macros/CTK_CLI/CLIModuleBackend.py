@@ -4,6 +4,13 @@ from cli_to_macro import fieldName
 from mlab_free_environment import mlabFreeEnvironment
 import tempfile, os, sys, shutil
 
+# global CLIModule instance
+cliModule = None
+
+def checkCLI():
+    global cliModule
+    cliModule = CLIModule(ctx.field('cliExecutablePath').value)
+            
 def updateIfAutoApply():
     if ctx.field("autoApply").value:
         update()
@@ -122,18 +129,16 @@ arg = ArgumentConverter()
 def cleanupTemporaryFiles():
     if not ctx.field('retainTemporaryFiles').value:
         arg.cleanupTemporaryFiles()
+
+class CLIExecution(object):
+    def __init__(self):
+        self.returnParameterFilename = None
+
+    def compileCommand(self):
+        arguments, options, outputs = cliModule.classifyParameters()
+
+        command = [cliModule.path]
         
-def tryUpdate():
-    """Execute the CLI module, but don't warn about missing inputs (used
-    for autoUpdate).  Returns error messages that can be displayed if
-    explicitly run (cf. update())."""
-
-    command = [cliModule.path]
-    arguments, options, outputs = cliModule.classifyParameters()
-
-    returnParameterFilename = None
-
-    if True:
         for p in options:
             value = arg(p)
             if value is None: # missing optional arg / output arg (without default) / false bool
@@ -151,9 +156,9 @@ def tryUpdate():
 
         if outputs:
             command.append('--returnparameterfile')
-            fd, returnParameterFilename = arg.mkstemp('.params')
+            fd, self.returnParameterFilename = arg.mkstemp('.params')
             os.close(fd)
-            command.append(returnParameterFilename)
+            command.append(self.returnParameterFilename)
 
         for p in arguments:
             value = arg(p)
@@ -161,13 +166,44 @@ def tryUpdate():
                 clear()
                 return "%s: Input image %r is not optional!\n" % (cliModule.name, fieldName(p))
             command.append(value)
+            
+        return command
 
+    def parseResults(self):
+        if self.returnParameterFilename:
+            with file(self.returnParameterFilename) as f:
+                for line in f:
+                    key, value = line.split('=', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    ctx.field(key).value = value
+
+    def saveInputImages(self):
         for p, filename in arg.inputImageFilenames():
             if os.path.exists(filename) and os.path.getsize(filename):
                 continue
             ioModule = ctx.module(fieldName(p))
             ioModule.field('unresolvedFileName').value = filename
             ioModule.field('save').touch()
+                    
+    def loadOutputImages(self):
+        for p, filename in arg.outputImageFilenames():
+            ioModule = ctx.module(fieldName(p))
+            ioModule.field('unresolvedFileName').value = filename
+
+
+def tryUpdate():
+    """Execute the CLI module, but don't warn about missing inputs (used
+    for autoUpdate).  Returns error messages that can be displayed if
+    explicitly run (cf. update())."""
+
+    execution = CLIExecution()
+
+    command = execution.compileCommand()
+
+    execution.saveInputImages()
+    
+    if True:
 
         ctx.field('debugCommandline').value = ' '.join(map(escapeShellArg, command))
 
@@ -185,16 +221,8 @@ def tryUpdate():
             ctx.field('debugStdErr').value = f.read()
 
         if ec == 0:
-            if returnParameterFilename:
-                with file(returnParameterFilename) as f:
-                    for line in f:
-                        key, value = line.split('=', 1)
-                        key = key.strip()
-                        value = value.strip()
-                        ctx.field(key).value = value
-            for p, filename in arg.outputImageFilenames():
-                ioModule = ctx.module(fieldName(p))
-                ioModule.field('unresolvedFileName').value = filename
+            execution.parseResults()
+            execution.loadOutputImages()
         elif ec > 0:
             clear()
             return "%s returned exitcode %d!\n" % (cliModule.name, ec)
@@ -213,7 +241,3 @@ def clear():
     for o in ctx.outputs():
         ctx.module(o).field("close").touch()
         arg.cleanupTemporaryFile(o)
-
-def checkCLI():
-    global cliModule
-    cliModule = CLIModule(ctx.field('cliExecutablePath').value)
