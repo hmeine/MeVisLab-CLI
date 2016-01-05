@@ -269,7 +269,7 @@ This documentation is extracted from the CLI module's self-description."""
 
             if parameter.channel == 'output':
                 if not (parameter.isExternalType() or parameter.typ == 'file'):
-                    field.addTag('editable', False)
+                    field.addTag(editable = False)
             else:
                 autoApplyListener.addTag(listenField = parameterFieldName)
 
