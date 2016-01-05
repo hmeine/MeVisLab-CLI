@@ -134,6 +134,13 @@ class CLIExecution(object):
     def __init__(self):
         self.returnParameterFilename = None
 
+        self.stdout = None
+        self.stderr = None
+        self.stdoutFilename = None
+        self.stderrFilename = None
+        self.process = None
+        self.errorDescription = None
+
     def compileCommand(self):
         arguments, options, outputs = cliModule.classifyParameters()
 
@@ -169,6 +176,52 @@ class CLIExecution(object):
             
         return command
 
+    def saveInputImages(self):
+        for p, filename in arg.inputImageFilenames():
+            if os.path.exists(filename) and os.path.getsize(filename):
+                continue
+            ioModule = ctx.module(fieldName(p))
+            ioModule.field('unresolvedFileName').value = filename
+            ioModule.field('save').touch()
+
+    def start(self):
+        command = self.compileCommand()
+        ctx.field('debugCommandline').value = ' '.join(map(escapeShellArg, command))
+        
+        self.saveInputImages()
+
+        self.errorDescription = None
+        self.stdout, self.stdoutFilename = arg.mkstemp('.stdout')
+        self.stderr, self.stderrFilename = arg.mkstemp('.stderr')
+        self.process = popenCLIExecutable(command, stdout = self.stdout, stderr = self.stderr,
+                                          env = mlabFreeEnvironment())
+        return self.process
+
+    def wait(self):
+        ec = self.process.wait()
+        self._processTerminated(ec)
+
+    def _processTerminated(self, ec):
+        os.close(self.stdout)
+        os.close(self.stderr)
+
+        with file(self.stdoutFilename) as f:
+            ctx.field('debugStdOut').value = f.read()
+        with file(self.stderrFilename) as f:
+            ctx.field('debugStdErr').value = f.read()
+
+        if ec == 0:
+            self.parseResults()
+            self.loadOutputImages()
+        elif ec > 0:
+            clear()
+            self.errorDescription = "%s returned exitcode %d!\n" % (cliModule.name, ec)
+        else:
+            clear()
+            self.errorDescription = "%s received SIGNAL %d!\n" % (cliModule.name, -ec)
+
+        return ec
+            
     def parseResults(self):
         if self.returnParameterFilename:
             with file(self.returnParameterFilename) as f:
@@ -178,14 +231,6 @@ class CLIExecution(object):
                     value = value.strip()
                     ctx.field(key).value = value
 
-    def saveInputImages(self):
-        for p, filename in arg.inputImageFilenames():
-            if os.path.exists(filename) and os.path.getsize(filename):
-                continue
-            ioModule = ctx.module(fieldName(p))
-            ioModule.field('unresolvedFileName').value = filename
-            ioModule.field('save').touch()
-                    
     def loadOutputImages(self):
         for p, filename in arg.outputImageFilenames():
             ioModule = ctx.module(fieldName(p))
@@ -199,36 +244,10 @@ def tryUpdate():
 
     execution = CLIExecution()
 
-    command = execution.compileCommand()
-
-    execution.saveInputImages()
-    
-    if True:
-
-        ctx.field('debugCommandline').value = ' '.join(map(escapeShellArg, command))
-
-        stdout, stdoutFilename = arg.mkstemp('.stdout')
-        stderr, stderrFilename = arg.mkstemp('.stderr')
-        p = popenCLIExecutable(command, stdout = stdout, stderr = stderr,
-                               env = mlabFreeEnvironment())
-        ec = p.wait()
-        os.close(stdout)
-        os.close(stderr)
-
-        with file(stdoutFilename) as f:
-            ctx.field('debugStdOut').value = f.read()
-        with file(stderrFilename) as f:
-            ctx.field('debugStdErr').value = f.read()
-
-        if ec == 0:
-            execution.parseResults()
-            execution.loadOutputImages()
-        elif ec > 0:
-            clear()
-            return "%s returned exitcode %d!\n" % (cliModule.name, ec)
-        else:
-            clear()
-            return "%s received SIGNAL %d!\n" % (cliModule.name, -ec)
+    execution.start()
+    ec = execution.wait()
+    if ec:
+        return execution.error
 
 def update():
     """Execute the CLI module"""
