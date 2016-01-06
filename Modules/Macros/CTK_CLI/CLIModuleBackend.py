@@ -262,7 +262,7 @@ def tryUpdate():
         time.sleep(0.1)
     ec = execution.wait()
     if ec:
-        return execution.error
+        return execution.errorDescription
 
 def update():
     """Execute the CLI module"""
