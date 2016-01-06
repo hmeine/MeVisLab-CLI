@@ -29,12 +29,22 @@ Window {
     expandY = yes
     Horizontal {
       margin = 0
-      Field importPaths {
-        minLength = 50
+      expandY = YES
+      ListBox importPaths {
+        selectionMode = Extended
+        name = pathList
+        rowSeparator = ":"
       }
-      Button {
-        title = "Add..."
-        command = browseForDirectory
+      Vertical {
+        expandY = yes
+        Button {
+          title = "Add..."
+          command = browseForDirectory
+        }
+        Button {
+          title = "Remove"
+          command = removeSelectedDirectory
+        }
       }
     }
     Field targetDirectory {
