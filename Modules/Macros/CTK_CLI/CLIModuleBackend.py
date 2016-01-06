@@ -2,7 +2,8 @@
 from ctk_cli import CLIModule, popenCLIExecutable
 from cli_to_macro import fieldName
 from mlab_free_environment import mlabFreeEnvironment
-import tempfile, os, sys, shutil
+import tempfile, os, sys, shutil, time
+from mevis import MLAB
 
 # global CLIModule instance
 cliModule = None
@@ -197,9 +198,17 @@ class CLIExecution(object):
                                           env = mlabFreeEnvironment())
         return self.process
 
+    def isRunning(self):
+        self.process.poll()
+        return self.process.returncode is None
+    
     def wait(self):
-        ec = self.process.wait()
-        self._processTerminated(ec)
+        if self.isRunning():
+            self.process.wait()
+        ec = self.process.returncode
+        if self.stdout is not None:
+            self._processTerminated(ec)
+        return ec
 
     def _processTerminated(self, ec):
         os.close(self.stdout)
@@ -209,6 +218,9 @@ class CLIExecution(object):
             ctx.field('debugStdOut').value = f.read()
         with file(self.stderrFilename) as f:
             ctx.field('debugStdErr').value = f.read()
+
+        self.stdout = None
+        self.stderr = None
 
         if ec == 0:
             self.parseResults()
@@ -245,6 +257,9 @@ def tryUpdate():
     execution = CLIExecution()
 
     execution.start()
+    while execution.isRunning():
+        MLAB.processEvents()
+        time.sleep(0.1)
     ec = execution.wait()
     if ec:
         return execution.error
