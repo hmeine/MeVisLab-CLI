@@ -180,6 +180,9 @@ This documentation is extracted from the CLI module's self-description."""
     outputsSection = MDLGroup("Outputs")
     parametersSection = MDLGroup("Parameters")
 
+    networkPanel = scriptFile.addGroup("NetworkPanel")
+    networkPanel.addGroup('Button', 'update')
+    
     # Commands section
     scriptFile.append(MDLNewline)
     commands = scriptFile.addGroup("Commands")
