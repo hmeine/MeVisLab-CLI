@@ -89,13 +89,20 @@ def browseForDirectory():
         importPaths.append(ctx.unexpandFilename(dirName))
         ctx.field('importPaths').value = ':'.join(importPaths)
 
-def removeSelectedDirectory():
-    global c
+def _selectedPaths():
     c = ctx.control('pathList')
     importPaths = _importPathsAsList()
-    selected = [index for index in range(len(importPaths))
-                if c.isItemSelected(index)]
+    return [index for index in range(len(importPaths))
+            if c.isItemSelected(index)]
+    
+        
+def removeSelectedDirectory():
+    selected = _selectedPaths()
     if selected:
+        importPaths = _importPathsAsList()
         for index in selected[::-1]:
             del importPaths[index]
         ctx.field('importPaths').value = ':'.join(importPaths)
+
+def pathSelectionChanged():
+    ctx.control('removeButton').setEnabled(bool(_selectedPaths()))

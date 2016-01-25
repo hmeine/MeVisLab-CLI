@@ -34,18 +34,24 @@ Window {
         selectionMode = Extended
         name = pathList
         rowSeparator = ":"
+        selectionChangedCommand = pathSelectionChanged
       }
       Vertical {
+        expandX = no
         expandY = yes
         Button {
           title = "Add..."
           command = browseForDirectory
         }
         Button {
+          name = removeButton
           title = "Remove"
           command = removeSelectedDirectory
+          accel = Del
         }
+        VSpacer {}
       }
+      Execute = pathSelectionChanged
     }
     Field targetDirectory {
       browseButton = yes
