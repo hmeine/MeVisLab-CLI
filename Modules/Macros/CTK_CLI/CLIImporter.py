@@ -16,8 +16,10 @@ DEFAULT_SEARCH_PATHS = (
     r"C:\Program*\Slicer*\Extensions-*\*\lib\Slicer-*\cli-modules",
     )
 
+PATH_SEP = '\n'
+    
 def _importPathsAsList():
-    return ctx.field('importPaths').value.split(os.pathsep)
+    return ctx.field('importPaths').value.split(PATH_SEP)
 
 def doImport(field = None, window = None):
     importPaths = [ctx.expandFilename(os.path.expanduser(path))
@@ -79,7 +81,7 @@ def init():
         found = []
         for pattern in DEFAULT_SEARCH_PATHS:
             found.extend(glob.glob(os.path.expanduser(pattern)))
-        ctx.field('importPaths').value = ':'.join(found)
+        ctx.field('importPaths').value = PATH_SEP.join(found)
 
 def browseForDirectory():
     dirName = MLABFileDialog.getExistingDirectory(
@@ -87,7 +89,7 @@ def browseForDirectory():
     if dirName:
         importPaths = _importPathsAsList()
         importPaths.append(ctx.unexpandFilename(dirName))
-        ctx.field('importPaths').value = ':'.join(importPaths)
+        ctx.field('importPaths').value = PATH_SEP.join(importPaths)
 
 def _selectedPaths():
     c = ctx.control('pathList')
@@ -102,7 +104,7 @@ def removeSelectedDirectory():
         importPaths = _importPathsAsList()
         for index in selected[::-1]:
             del importPaths[index]
-        ctx.field('importPaths').value = ':'.join(importPaths)
+        ctx.field('importPaths').value = PATH_SEP.join(importPaths)
 
 def pathSelectionChanged():
     ctx.control('removeButton').setEnabled(bool(_selectedPaths()))

@@ -33,7 +33,7 @@ Window {
       ListBox importPaths {
         selectionMode = Extended
         name = pathList
-        rowSeparator = ":"
+        rowSeparator = \n
         selectionChangedCommand = pathSelectionChanged
       }
       Vertical {
