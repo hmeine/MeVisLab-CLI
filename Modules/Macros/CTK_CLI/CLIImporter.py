@@ -57,6 +57,7 @@ def doImport(field = None, window = None):
                 ctx.field('MLABModuleHelp2Html.directory').value = targetDirectory
                 ctx.field('MLABModuleHelp2Html.createScreenshots').touch()
 
+            # TODO: use MLAB.priv().reloadModules() instead?
             QtGui.QMessageBox.information(
                 pd, "Done" if (successful == total) else "Done (with errors)",
                 "%s modules successfully imported. "
