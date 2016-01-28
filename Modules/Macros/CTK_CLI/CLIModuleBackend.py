@@ -248,21 +248,31 @@ class CLIExecution(object):
             ioModule = ctx.module(fieldName(p))
             ioModule.field('unresolvedFileName').value = filename
 
+def _pollProcessStatus():
+    if execution and execution.isRunning():
+        ctx.callLater(0.15, _pollProcessStatus)
+    else:
+        ec = execution.wait()
 
+            
 def tryUpdate():
     """Execute the CLI module, but don't warn about missing inputs (used
     for autoUpdate).  Returns error messages that can be displayed if
     explicitly run (cf. update())."""
 
+    global execution
     execution = CLIExecution()
 
     execution.start()
-    while execution.isRunning():
-        MLAB.processEvents()
-        time.sleep(0.1)
-    ec = execution.wait()
-    if ec:
-        return execution.errorDescription
+    if ctx.field('runInBackground_WIP').value:
+        _pollProcessStatus()
+    else:
+        while execution.isRunning():
+            MLAB.processEvents()
+            time.sleep(0.1)
+        ec = execution.wait()
+        if ec:
+            return execution.errorDescription
 
 def update():
     """Execute the CLI module"""

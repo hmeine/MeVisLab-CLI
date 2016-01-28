@@ -345,6 +345,13 @@ This documentation is extracted from the CLI module's self-description."""
     parametersSection.addGroup('Field', 'update') \
         .addTag(type_ = 'Trigger')
 
+    parametersSection.addGroup('Field', 'runInBackground_WIP') \
+        .addTag(type_ = 'Bool')
+    parametersDoc.addGroup('Field', 'runInBackground_WIP') \
+        .addTag(type_ = 'Bool') \
+        .addTag(text = 'Execute asynchroneously; outputs will be touched after execution finished (this API is still work in progress)') \
+        .addTag(visibleInGUI = False)
+
     parametersDoc.addGroup('Field', 'retainTemporaryFiles') \
         .addTag(type_ = 'Bool') \
         .addTag(text = 'Do not delete temporary files after CLI execution') \
