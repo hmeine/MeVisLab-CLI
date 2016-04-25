@@ -495,7 +495,8 @@ This documentation is extracted from the CLI module's self-description."""
     return defFile, scriptFile, mlabFile, mhelpFile
 
 def cliToMacroModule(executablePath, targetDirectory, defFile = True,
-                     includePanelScreenshots = True, env = None):
+                     includePanelScreenshots = True, env = None,
+                     unexpandFilename = None):
     """Write .script/.mlab/.mhelp files for the CLI module `executablePath`
     to `targetDirectory`[/mhelp].  If `defFile` is set to an MLDFile instance,
     the .def file contents are appended to that object, otherwise a
@@ -514,6 +515,10 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True,
             defFile.append(MDLNewline)
         defFile.extend(mdefFile)
 
+    if unexpandFilename is not None:
+        cliExecutablePath = scriptFile.group('Interface').group('Parameters').group('Field', 'cliExecutablePath').tag('value')
+        cliExecutablePath.tagValue = unexpandFilename(cliExecutablePath.tagValue)
+
     scriptFile.write(os.path.join(targetDirectory, "%s.script" % m.name))
     mlabFile.write(os.path.join(targetDirectory, "%s.mlab" % m.name))
     mhelpFile.write(os.path.join(targetDirectory, "mhelp", "CLI_%s.mhelp" % m.name))
@@ -521,7 +526,8 @@ def cliToMacroModule(executablePath, targetDirectory, defFile = True,
     return mdefFile
 
 def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def',
-                  includePanelScreenshots = True, env = None):
+                  includePanelScreenshots = True, env = None,
+                  unexpandFilename = None):
     """Generator function that imports any number of CLI modules at
     once.  `importPaths` shall contain either directory names to be
     scanned (non-recursively) or paths of CLI executables.  Before
@@ -549,7 +555,8 @@ def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def',
         yield (i, successful, total, path)
         try:
             cliToMacroModule(path, targetDirectory, defFile,
-                             includePanelScreenshots, env = env)
+                             includePanelScreenshots, env = env,
+                             unexpandFilename = unexpandFilename)
             successful += 1
         except StandardError, e:
             logger.error(str(e))

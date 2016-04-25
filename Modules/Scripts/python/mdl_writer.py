@@ -46,22 +46,7 @@ class MDLTag(object):
                               mdlValue(self.tagValue))
 
 
-class MDLGroup(list):
-    def __init__(self, tagName, tagValue = None):
-        self.tagName = tagName
-        self.tagValue = tagValue
-
-    def mdl(self, indentation = ""):
-        content = [child.mdl(indentation + "  ")
-                   for child in self]
-        result = indentation + self.tagName
-        if self.tagValue is not None:
-            result += " " + mdlValue(self.tagValue)
-        if content:
-            return "%s {\n%s\n%s}" % (result, "\n".join(content), indentation)
-        else:
-            return "%s {}" % (result, )
-
+class _MDLParent(list):
     def addGroup(self, *args):
         result = MDLGroup(*args)
         self.append(result)
@@ -76,6 +61,35 @@ class MDLGroup(list):
         for child in self:
             if isinstance(child, MDLTag) and child.name() == name:
                 return child
+
+    def group(self, name, value = None):
+        for child in self:
+            if isinstance(child, MDLGroup) and child.name() == name and \
+              child.value() == value:
+                return child
+    
+
+class MDLGroup(_MDLParent):
+    def __init__(self, tagName, tagValue = None):
+        self.tagName = tagName
+        self.tagValue = tagValue
+
+    def name(self):
+        return self.tagName
+
+    def value(self):
+        return self.tagValue
+
+    def mdl(self, indentation = ""):
+        content = [child.mdl(indentation + "  ")
+                   for child in self]
+        result = indentation + self.tagName
+        if self.tagValue is not None:
+            result += " " + mdlValue(self.tagValue)
+        if content:
+            return "%s {\n%s\n%s}" % (result, "\n".join(content), indentation)
+        else:
+            return "%s {}" % (result, )
 
 
 class MDLNewline(object):
@@ -93,14 +107,9 @@ class MDLComment(object):
                          for line in self.comment.split("\n"))
 
 
-class MDLFile(list):
+class MDLFile(_MDLParent):
     def mdl(self):
         return "\n".join(element.mdl() for element in self) + "\n"
-
-    def addGroup(self, *args):
-        result = MDLGroup(*args)
-        self.append(result)
-        return result
 
     def write(self, filename):
         with file(filename, 'w') as f:
