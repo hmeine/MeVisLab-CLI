@@ -14,6 +14,7 @@ DEFAULT_SEARCH_PATHS = (
     "~/.config/NA-MIC/Extensions-*/*/lib/Slicer-*/cli-modules",
     r"C:\Program*\Slicer*\lib\Slicer-*\cli-modules",
     r"C:\Program*\Slicer*\Extensions-*\*\lib\Slicer-*\cli-modules",
+    # TODO: $(HOME)/AppData/Roaming/NA-MIC/Extensions-25516/Chest_Imaging_Platform/lib/Slicer-4.6/cli-modules
     )
 
 PATH_SEP = '\n'
