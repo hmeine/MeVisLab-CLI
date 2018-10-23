@@ -67,12 +67,12 @@ class ArgumentConverter(object):
         return fd, filename
 
     def inputImageFilenames(self):
-        for p, fn in self._imageFilenames.iteritems():
+        for p, fn in self._imageFilenames.items():
             if p.channel == 'input':
                 yield p, fn
 
     def outputImageFilenames(self):
-        for p, fn in self._imageFilenames.iteritems():
+        for p, fn in self._imageFilenames.items():
             if p.channel == 'output':
                 yield p, fn
 
@@ -215,9 +215,9 @@ class CLIExecution(object):
         os.close(self.stdout)
         os.close(self.stderr)
 
-        with file(self.stdoutFilename) as f:
+        with open(self.stdoutFilename) as f:
             ctx.field('debugStdOut').value = f.read()
-        with file(self.stderrFilename) as f:
+        with open(self.stderrFilename) as f:
             ctx.field('debugStdErr').value = f.read()
 
         self.stdout = None
@@ -237,7 +237,7 @@ class CLIExecution(object):
             
     def parseResults(self):
         if self.returnParameterFilename:
-            with file(self.returnParameterFilename) as f:
+            with open(self.returnParameterFilename) as f:
                 for line in f:
                     key, value = line.split('=', 1)
                     key = key.strip()

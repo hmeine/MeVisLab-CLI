@@ -559,14 +559,9 @@ def importAllCLIs(importPaths, targetDirectory, defFileName = 'CLIModules.def',
                              includePanelScreenshots, env = env,
                              unexpandFilename = unexpandFilename)
             successful += 1
-        except StandardError, e:
+        except Exception as e:
             logger.error(str(e))
     yield (total, successful, total, "")
 
-    with file(os.path.join(targetDirectory, defFileName), "w") as f:
-        # the XML files may contain non-ascii characters; don't fail with
-        # "UnicodeEncodeError: 'ascii' codec can't encode ..."
-        mdl = defFile.mdl()
-        if isinstance(mdl, unicode):
-            mdl = mdl.encode('latin-1', 'ignore')
-        f.write(mdl)
+    with open(os.path.join(targetDirectory, defFileName), "w") as f:
+        f.write(defFile.mdl())

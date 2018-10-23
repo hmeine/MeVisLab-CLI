@@ -31,7 +31,7 @@ class MDLTag(object):
             if name == 'type_':
                 name = 'type'
         elif kwargs:
-            raise ValueError, "MDLTag: use either positional args or kwargs, not both!"
+            raise ValueError("MDLTag: use either positional args or kwargs, not both!")
         self.tagName = name
         self.tagValue = value
 
@@ -113,7 +113,7 @@ class MDLFile(_MDLParent):
         return "\n".join(element.mdl() for element in self) + "\n"
 
     def write(self, filename):
-        with file(filename, 'w') as f:
+        with open(filename, 'w') as f:
             f.write(self.mdl())
 
 
