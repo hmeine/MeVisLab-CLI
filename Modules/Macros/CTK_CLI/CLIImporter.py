@@ -43,7 +43,7 @@ def doImport(field = None, window = None):
             includePanelScreenshots = generateScreenshots,
             env = mlabFreeEnvironment()):
         if path:
-            print "%d/%d importing %s..." % (index+1, total, path)
+            print("%d/%d importing %s..." % (index+1, total, path))
         pd.setValue(index)
         pd.setMaximum(total)
         if path:
