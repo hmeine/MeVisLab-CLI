@@ -206,7 +206,7 @@ class CLIExecution(object):
         if self.isRunning():
             self.process.wait()
         ec = self.process.returncode
-        if self.stdout is not None:
+        if self.stdout is not None: # wait() may be called again
             self._processTerminated(ec)
         return ec
 
