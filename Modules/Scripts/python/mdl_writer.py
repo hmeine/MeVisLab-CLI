@@ -19,7 +19,7 @@ def mdlValue(value):
         return '""'
     if "\n" in value:
         return '"*%s*"' % value.replace('\\', '\\\\').replace('"*', '"\\*')
-    if re.search('[ \t]', value) or '//' in value:
+    if re.search('[ \t{}=]', value) or '//' in value:
         return '"%s"' % re.sub(r'(["\\])', r'\\\1', value)
     return value
 
