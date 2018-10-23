@@ -8,7 +8,7 @@ ModuleHelp  {
     genre = ""
     keywords = "Slicer CTK CLI module import convert"
     seeAlso = ""
-    package = Release
+    package = ReleaseMeVis
     packageGroup = FMEwork
   }
   Purpose  {
@@ -63,7 +63,7 @@ After the initial import, you need to reload the module definitions (i.e. choose
       title = "Target Directory"
       visibleInGUI = Yes
       persistent = Yes
-      default = /home/hmeine/Developer/FMEwork/Release/Modules/Macros/CTK_CLI/generated
+      default = /home/hmeine/Developer/FMEwork/ReleaseMeVis/Modules/Macros/CTK_CLI/generated
     }
     Field generatePanelScreenshots {
       type = Bool
