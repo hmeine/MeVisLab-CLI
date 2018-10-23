@@ -1,3 +1,4 @@
+# Copyright (c) Fraunhofer MEVIS, Germany. All rights reserved.
 # **InsertLicense** code
 import os
 from mevis import MLABPackageManager

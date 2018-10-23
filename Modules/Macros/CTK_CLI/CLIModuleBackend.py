@@ -1,3 +1,4 @@
+# Copyright (c) Fraunhofer MEVIS, Germany. All rights reserved.
 # **InsertLicense** code
 from ctk_cli import CLIModule, popenCLIExecutable
 from cli_to_macro import fieldName

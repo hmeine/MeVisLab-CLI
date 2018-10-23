@@ -1,3 +1,4 @@
+# Copyright (c) Fraunhofer MEVIS, Germany. All rights reserved.
 # **InsertLicense** code
 import os, re, glob, logging, cli_to_macro
 from PythonQt import Qt, QtGui

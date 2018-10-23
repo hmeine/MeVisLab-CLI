@@ -1,3 +1,4 @@
+# Copyright (c) Fraunhofer MEVIS, Germany. All rights reserved.
 # **InsertLicense** code
 """Code for transforming CLI modules' XML descriptions into MeVisLab
 macro modules, currently supporting most parameter types (see below).
