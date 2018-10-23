@@ -41,7 +41,8 @@ def doImport(field = None, window = None):
     for index, successful, total, path in cli_to_macro.importAllCLIs(
             importPaths, targetDirectory,
             includePanelScreenshots = generateScreenshots,
-            env = mlabFreeEnvironment()):
+            env = mlabFreeEnvironment(),
+            unexpandFilename = ctx.unexpandFilename):
         if path:
             print("%d/%d importing %s..." % (index+1, total, path))
         pd.setValue(index)
